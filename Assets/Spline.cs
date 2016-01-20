@@ -40,6 +40,15 @@ public class Spline : System.Object {
         points = 3;
     }
 
+    public Spline()
+    {
+        p0 = new Point(new Vector3(0, 0, 0), 1);
+        p1 = new Point(new Vector3(0, 0, 0), 1);
+        p2 = new Point(new Vector3(0, 0, 0), 1);
+        p3 = new Point(new Vector3(0, 0, 0), 1);
+        points = 4;
+    }
+
     public Vector3 GetPointOverAll(float t)
     {       
         if(t < 0)
@@ -83,12 +92,15 @@ public class Spline : System.Object {
         return SplineSegements;
     }
 
-
+    /// <summary>
+    /// Returns the point/vector at t for this spline
+    /// </summary>
+    /// <param name="t"></param>
+    /// <returns></returns>
     public Vector3 GetPointAt(float t)
     {
         Vector3 top = new Vector3(0, 0, 0);
         float bot = 0;
-        Vector3 temp = new Vector3(0, 0, 0);
         float b = 0;
         for (int i = 0; i < points; i++)
         {
@@ -138,14 +150,12 @@ public class Spline : System.Object {
                 bot += b * p3.Weight;
             }
         }
-        
-        temp = (1/bot) * top;
-        return temp;
+        return (1 / bot) * top;
     }
 
     public void addFrontSplineC1(Spline _spline)
     {
-        if (connectBack == null)
+        if (connectFront == null)
         {
             Point pos1 = p0;
             Point pos2 = _spline.p0;
@@ -154,6 +164,27 @@ public class Spline : System.Object {
 
             intersec = Point.intersect(pos1, direct1, pos2, direct2);
             connectFront = new Spline(pos1, intersec, pos2);
+            connectFront.connectFront = this;
+            connectFront.connectBack = _spline;
+            _spline.connectFront = connectFront;
+        }
+    }
+
+    public void addFrontSplineC2(Spline _spline)
+    {
+        if(connectFront == null)
+        {
+            Point pos1 = p0;
+            Point pos2 = _spline.p0;
+            direct1 = p1 - p0;
+            direct2 = _spline.p0 - _spline.p1;
+
+            //intersec = Point.intersect(pos1, direct1, pos2, direct2);
+            Point tempPoint1 = pos1 + direct1;
+            tempPoint1.Weight = 1;
+            Point tempPoint2 = pos2 + direct2;
+            tempPoint1.Weight = 1;
+            connectFront = new Spline(pos1, tempPoint1, tempPoint2, pos2);
             connectFront.connectFront = this;
             connectFront.connectBack = _spline;
             _spline.connectFront = connectFront;
@@ -220,7 +251,7 @@ public class Spline : System.Object {
             }
             direct2 = _spline.p0 - _spline.p1;
 
-            intersec = Point.intersect(pos1, direct1, pos2, direct2);
+            //intersec = Point.intersect(pos1, direct1, pos2, direct2);
             Point tempPoint1 = pos1 + direct1;
             tempPoint1.Weight = 1;
             Point tempPoint2 = pos2 + direct2;
@@ -232,5 +263,36 @@ public class Spline : System.Object {
         }
     }
 
+    /// <summary>
+    /// Returns the tangent vector of the spline at i
+    /// </summary>
+    /// <param name="i">The point on the spline, where the tangent vector should be calculated</param>
+    /// <param name="res">The resolution, for the spline. The tangent is calculated with near by points of the spline, no real derivate is calculated</param>
+    /// <returns></returns>
+    public Vector3 GetTangensAt(float i, float res)
+    {
+        if(i < 0)
+        {
+            return (p1.Position - p0.Position) / 2;
+        }
+        else if(i == 1)
+        {
+            return (p3.Position - p2.Position) / 2;
+        }
+        else return GetPointAt(i + res) - GetPointAt(i);
+    }
 
+    /// <summary>
+    /// Returns the normal vector of the spline at i
+    /// </summary>
+    /// <param name="i">The point on the spline, where the normal vector should be calculated</param>
+    /// <param name="res">The resolution, for the spline. The tangent for the normaldirection is calculated with near by points of the spline, no real derivate is calculated</param>
+    /// <returns></returns>
+    public Vector3 GetNormalAt(float i, float res)
+    {
+        Vector3 midP = GetPointAt(i);
+        Vector3 tang = GetTangensAt(i, res);
+        Vector3 direc = new Vector3(-tang.y, tang.x, 0);
+        return Vector3.Cross(midP.normalized, direc.normalized);
+    }
 }
