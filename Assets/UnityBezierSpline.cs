@@ -13,23 +13,35 @@ class UnityBezierSpline : MonoBehaviour
     public bool ShowNormal = false;
     public bool ShowBall = false;
 
+    public float ballsSpeed = 0.005f;
     private float pro = 0;
+
+    float x = 0;
+    float y = 0;
+    float z = 0;
+    int step = 5;
 
     // Use this for initialization
     void Start()
     {
         Spline spline1 = new Spline(new Point(new Vector3(0, 1, 0), 1), new Point(new Vector3(0, 2, 1), 1f), new Point(new Vector3(1, 4, 2), 1f), new Point(new Vector3(2, 4, 2), 1));
         //Spline spline2 = new Spline(new Point(new Vector3(2, 4, 2), 1), new Point(new Vector3(3, 4, 2), 1f), new Point(new Vector3(8, 4, 3), 1f), new Point(new Vector3(9, 5, 4), 1));
-        Spline spline2 = new Spline(new Point(new Vector3(10, 4, 6), 1), new Point(new Vector3(10, 4, 5), 1f), new Point(new Vector3(10, 4, 3), 1f), new Point(new Vector3(10, 4, 2), 1));
-        bezierSpline = new BezierSpline(spline1);
-        bezierSpline.AddSplineAtFront(spline2);
-        //bezierSpline.AddSplineAtFront(spline3);
+        //Spline spline2 = new Spline(new Point(new Vector3(10, 4, 6), 1), new Point(new Vector3(10, 4, 5), 1f), new Point(new Vector3(10, 4, 3), 1f), new Point(new Vector3(10, 4, 2), 1));
+        //bezierSpline = new BezierSpline(spline1);
+        //bezierSpline.AddSplineAtFront(spline2);
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        if(((int)Time.time + 1) % step == 0)
+        {
+            step += 5;
+            x += Random.Range(-5, 0);
+            y += Random.Range(-5, 0);
+            z += Random.Range(-5, 0);
+            bezierSpline.AddPointAtFront(new Point(new Vector3(x, y, z), 1));
+        }
     }
 
     // DebugDraws
@@ -47,7 +59,7 @@ class UnityBezierSpline : MonoBehaviour
                 DebugSplineRes = 100;
             }
             float steps = 1f / DebugSplineRes;
-            for(int a = 0; a < bezierSpline.splineSegemnts.Count && a < NumOfShownSplinesegments; a++)
+            for (int a = 0; a < bezierSpline.splineSegemnts.Count && a < NumOfShownSplinesegments; a++)
             {
                 Gizmos.color = Color.yellow;
                 for (float i = 0; i <= 1; i += steps)
@@ -69,7 +81,7 @@ class UnityBezierSpline : MonoBehaviour
                 // Tangent vectors
                 Gizmos.color = Color.blue;
                 if (ShowTangens)
-                {                    
+                {
                     for (float i = 0; i <= 1; i += steps)
                     {
                         Vector3 pos = (bezierSpline.GetSplineSegmentAt(a).GetPointAt(i));
@@ -79,7 +91,7 @@ class UnityBezierSpline : MonoBehaviour
                 // Normal vectors
                 Gizmos.color = Color.green;
                 if (ShowNormal)
-                {                   
+                {
                     for (float i = 0; i <= 1; i += steps)
                     {
                         Vector3 pos = (bezierSpline.GetSplineSegmentAt(a).GetPointAt(i));
@@ -87,17 +99,18 @@ class UnityBezierSpline : MonoBehaviour
                     }
                 }
             }
-            // Show the direction and speed of the splines
-            if (ShowBall)
+        }
+
+        // Show the direction and speed of the splines
+        if (ShowBall)
+        {
+            Gizmos.color = Color.green;
+            pro += ballsSpeed;
+            Vector3 pro2 = bezierSpline.GetPointAt(pro);
+            Gizmos.DrawSphere(pro2, 0.2f);
+            if(pro > NumOfShownSplinesegments || pro > bezierSpline.splineSegemnts.Count)
             {
-                Gizmos.color = Color.green;
-                pro += 0.001f;
-                Vector3 pro2 = bezierSpline.GetPointAt(pro);
-                Gizmos.DrawSphere(pro2, 0.2f);
-                if(pro > NumOfShownSplinesegments || pro > bezierSpline.splineSegemnts.Count)
-                {
-                    pro = 0;
-                }
+                pro = 0;
             }
         }
     }

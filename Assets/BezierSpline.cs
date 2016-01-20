@@ -41,8 +41,50 @@ class BezierSpline : System.Object
             Spline _spline = new Spline(pos1, pos1 + direct1, pos2 + direct2, pos2);
             splineSegemnts.AddFirst(_spline);
             splineSegemnts.AddFirst(spline);
-            Debug.Log("Created new Spline");
+            Debug.Log("Created new Spline at front");
         }
+    }
+
+    /// <summary>
+    /// Adds a spline at the back of this bezier spline. So the first control point of the new spline will be connected with the 
+    /// last control point of the first bezier spline-segment. If the connection isn´t c2 continuous, a new spline segment is created
+    /// in a way, everything is c2 continuous
+    /// </summary>
+    /// <param name="spline">the spline which should be added at the back of the bezier spline segment</param>
+    /// <returns></returns>
+    public void AddSplineAtBack(Spline spline)
+    {
+        if (CheckC2(spline, splineSegemnts.Last.Value))
+        {
+            splineSegemnts.AddLast(spline);
+        }
+        else
+        {
+            Point pos2 = spline.p0;
+            Point pos1 = splineSegemnts.Last.Value.p3;
+            Point direct2 = spline.p0 - spline.p1;
+            Point direct1 = splineSegemnts.Last.Value.p3 - splineSegemnts.Last.Value.p2;
+            Spline _spline = new Spline(pos1, pos1 + direct1, pos2 + direct2, pos2);
+            splineSegemnts.AddLast(_spline);
+            splineSegemnts.AddLast(spline);
+            Debug.Log("Created new Spline at back");
+        }
+    }
+
+    /// <summary>
+    /// Adds a new spline segment in front of the bezier spline depending on the new point. creates everything in c2 continuous behaviour
+    /// </summary>
+    /// <param name="point">The new point which is the front point of the new spline segment</param>
+    public void AddPointAtFront(Point point)
+    {
+        Point pos1 = point;
+        Point pos2 = splineSegemnts.First.Value.p0;
+        Point direct2 = splineSegemnts.First.Value.p0 - splineSegemnts.First.Value.p1;
+        Point direct1 = pos2 + direct2 - ((pos2 + direct2) - pos1) * 0.5f;
+        direct1.Weight = 1;
+        Spline _spline = new Spline(pos1, direct1, pos2 + direct2, pos2);
+        splineSegemnts.AddFirst(_spline);
+        Debug.Log("Created new Spline at front with Point");
     }
 
     /// <summary>

@@ -38,6 +38,12 @@ public class Point : System.Object
         return new Point(temp, (p0.Weight * p1.Weight));
     }
 
+    public static Point operator *(Point p0, float p1)
+    {
+        Vector3 temp = new Vector3(p0.Position.x * p1, p0.Position.y * p1, p0.Position.z * p1);
+        return new Point(temp, (p0.Weight * p1));
+    }
+
     public static Point intersect(Point p_0, Point v0, Point p_1, Point v1)
     {
         Vector2 p0 = new Vector2(p_0.Position.x, p_0.Position.z);

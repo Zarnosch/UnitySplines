@@ -127,4 +127,16 @@ public class Spline : System.Object {
         Vector3 direc = new Vector3(-tang.y, tang.x, 0);
         return Vector3.Cross(midP.normalized, direc.normalized);
     }
+
+    /// <summary>
+    /// Transform the splinesegment along the given vector
+    /// </summary>
+    /// <param name="">the vector which is used to translate</param>
+    public void Transform(Vector3 transformVector)
+    {
+        p0.Position += transformVector;
+        p1.Position += transformVector;
+        p2.Position += transformVector;
+        p3.Position += transformVector;
+    }
 }
