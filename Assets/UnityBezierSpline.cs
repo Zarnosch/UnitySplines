@@ -58,15 +58,11 @@ class UnityBezierSpline : MonoBehaviour
                 Gizmos.color = Color.red;
                 if (ShowSplineContolPoints)
                 {
-                    Gizmos.color = Color.black;
                     Gizmos.DrawSphere(bezierSpline.GetSplineSegmentAt(a).p0.Position, 0.1f);
-                    Gizmos.color = Color.cyan;
                     Gizmos.DrawSphere(bezierSpline.GetSplineSegmentAt(a).p1.Position, 0.1f);
-                    Gizmos.color = Color.gray;
                     Gizmos.DrawSphere(bezierSpline.GetSplineSegmentAt(a).p2.Position, 0.1f);
                     if (bezierSpline.GetSplineSegmentAt(a).p3 != null)
                     {
-                        Gizmos.color = Color.red;
                         Gizmos.DrawSphere(bezierSpline.GetSplineSegmentAt(a).p3.Position, 0.2f);
                     }
                 }
