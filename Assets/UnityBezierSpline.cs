@@ -24,11 +24,7 @@ class UnityBezierSpline : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        Spline spline1 = new Spline(new Point(new Vector3(0, 1, 0), 1), new Point(new Vector3(0, 2, 1), 1f), new Point(new Vector3(1, 4, 2), 1f), new Point(new Vector3(2, 4, 2), 1));
-        //Spline spline2 = new Spline(new Point(new Vector3(2, 4, 2), 1), new Point(new Vector3(3, 4, 2), 1f), new Point(new Vector3(8, 4, 3), 1f), new Point(new Vector3(9, 5, 4), 1));
-        //Spline spline2 = new Spline(new Point(new Vector3(10, 4, 6), 1), new Point(new Vector3(10, 4, 5), 1f), new Point(new Vector3(10, 4, 3), 1f), new Point(new Vector3(10, 4, 2), 1));
-        //bezierSpline = new BezierSpline(spline1);
-        //bezierSpline.AddSplineAtFront(spline2);
+        bezierSpline = new BezierSpline(new Spline(new Point(new Vector3(0, 0, 0), 1), new Point(new Vector3(0, 0, 10), 1f), new Point(new Vector3(0, 10, 10), 1f), new Point(new Vector3(0, 10, 0), 1)));
     }
 
     // Update is called once per frame
@@ -37,10 +33,14 @@ class UnityBezierSpline : MonoBehaviour
         if(((int)Time.time + 1) % step == 0)
         {
             step += 5;
-            x += Random.Range(-5, 0);
-            y += Random.Range(-5, 0);
-            z += Random.Range(-5, 0);
+            /*
+            x += Random.Range(-5, 5);
+            y += Random.Range(-5, 5);
+            z += Random.Range(-5, 5);
             bezierSpline.AddPointAtFront(new Point(new Vector3(x, y, z), 1));
+            */
+
+            bezierSpline.splineSegemnts.First.Value.ElevateDegree();
         }
     }
 
@@ -70,12 +70,9 @@ class UnityBezierSpline : MonoBehaviour
                 Gizmos.color = Color.red;
                 if (ShowSplineContolPoints)
                 {
-                    Gizmos.DrawSphere(bezierSpline.GetSplineSegmentAt(a).p0.Position, 0.1f);
-                    Gizmos.DrawSphere(bezierSpline.GetSplineSegmentAt(a).p1.Position, 0.1f);
-                    Gizmos.DrawSphere(bezierSpline.GetSplineSegmentAt(a).p2.Position, 0.1f);
-                    if (bezierSpline.GetSplineSegmentAt(a).p3 != null)
+                    for(int i = 0; i < bezierSpline.GetSplineSegmentAt(a).controlPoints.Count; i++)
                     {
-                        Gizmos.DrawSphere(bezierSpline.GetSplineSegmentAt(a).p3.Position, 0.2f);
+                        Gizmos.DrawSphere(bezierSpline.GetSplineSegmentAt(a).GetControlPointAt(i).Position, 0.1f);
                     }
                 }
                 // Tangent vectors

@@ -34,10 +34,10 @@ class BezierSpline : System.Object
         }
         else
         {
-            Point pos1 = spline.p3;
-            Point pos2 = splineSegemnts.First.Value.p0;
-            Point direct1 = spline.p3 - spline.p2;
-            Point direct2 = splineSegemnts.First.Value.p0 - splineSegemnts.First.Value.p1;
+            Point pos1 = spline.controlPoints.Last.Value;
+            Point pos2 = splineSegemnts.First.Value.controlPoints.First.Value;
+            Point direct1 = pos1 - spline.GetControlPointAt(spline.controlPoints.Count -1);
+            Point direct2 = splineSegemnts.First.Value.controlPoints.First.Value - splineSegemnts.First.Value.GetControlPointAt(1);
             Spline _spline = new Spline(pos1, pos1 + direct1, pos2 + direct2, pos2);
             splineSegemnts.AddFirst(_spline);
             splineSegemnts.AddFirst(spline);
@@ -60,10 +60,10 @@ class BezierSpline : System.Object
         }
         else
         {
-            Point pos2 = spline.p0;
-            Point pos1 = splineSegemnts.Last.Value.p3;
-            Point direct2 = spline.p0 - spline.p1;
-            Point direct1 = splineSegemnts.Last.Value.p3 - splineSegemnts.Last.Value.p2;
+            Point pos2 = spline.controlPoints.First.Value;
+            Point pos1 = splineSegemnts.Last.Value.controlPoints.Last.Value;
+            Point direct2 = spline.controlPoints.First.Value - spline.GetControlPointAt(1);
+            Point direct1 = splineSegemnts.Last.Value.controlPoints.Last.Value - splineSegemnts.Last.Value.GetControlPointAt(splineSegemnts.Last.Value.controlPoints.Count -1);
             Spline _spline = new Spline(pos1, pos1 + direct1, pos2 + direct2, pos2);
             splineSegemnts.AddLast(_spline);
             splineSegemnts.AddLast(spline);
@@ -78,8 +78,8 @@ class BezierSpline : System.Object
     public void AddPointAtFront(Point point)
     {
         Point pos1 = point;
-        Point pos2 = splineSegemnts.First.Value.p0;
-        Point direct2 = splineSegemnts.First.Value.p0 - splineSegemnts.First.Value.p1;
+        Point pos2 = splineSegemnts.First.Value.controlPoints.First.Value;
+        Point direct2 = pos2 - splineSegemnts.First.Value.GetControlPointAt(1);
         Point direct1 = pos2 + direct2 - ((pos2 + direct2) - pos1) * 0.5f;
         direct1.Weight = 1;
         Spline _spline = new Spline(pos1, direct1, pos2 + direct2, pos2);
@@ -95,7 +95,7 @@ class BezierSpline : System.Object
     /// <returns></returns>
     public bool CheckC0(Spline _firstS, Spline _secondS)
     {
-        if (_firstS.p3.Position == _secondS.p0.Position)
+        if (_firstS.controlPoints.Last.Value.Position == _secondS.controlPoints.First.Value.Position)
         {
             return true;
         }
@@ -112,7 +112,7 @@ class BezierSpline : System.Object
     {
         if(CheckC0(_firstS, _secondS))
         {
-            if (Vector3.Normalize(_firstS.p2.Position - _firstS.p3.Position) == Vector3.Normalize(_secondS.p0.Position - _secondS.p1.Position))
+            if (Vector3.Normalize(_firstS.GetControlPointAt(_firstS.controlPoints.Count - 1).Position - _firstS.controlPoints.Last.Value.Position) == Vector3.Normalize(_secondS.controlPoints.First.Value.Position - _secondS.GetControlPointAt(1).Position))
             {
                 return true;
             }
@@ -131,10 +131,10 @@ class BezierSpline : System.Object
     {
         if (CheckC1(_firstS, _secondS))
         {
-            Point pos1 = _firstS.p2;
-            Point pos2 = _secondS.p1;
-            Point direct1 = _firstS.p2 - _firstS.p1;
-            Point direct2 = _secondS.p1 - _secondS.p2;
+            Point pos1 = _firstS.GetControlPointAt(_firstS.controlPoints.Count -1);
+            Point pos2 = _secondS.GetControlPointAt(1);
+            Point direct1 = pos1 - _firstS.GetControlPointAt(2);
+            Point direct2 = pos2 - _secondS.GetControlPointAt(2);
 
             Point intersec = Point.intersect(pos1, direct1, pos2, direct2);
             if (intersec.Position == new Vector3(0, 0, 0))

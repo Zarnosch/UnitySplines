@@ -12,13 +12,11 @@ public class UnitySpline : MonoBehaviour
     public uint DebugSplineRes = 1;
     public bool ShowTangens = false;
     public bool ShowNormal = false;
-    //public bool ShowZyliner = false;
-    //public float ZylinderRadius = 1.0f;
 
     // Use this for initialization
     void Start()
     {
-        spline = new Spline(new Point(new Vector3(0, 1, 0), 1), new Point(new Vector3(0, 2, 1), 1f), new Point(new Vector3(1, 4, 2), 1f), new Point(new Vector3(2, 4, 2), 1));
+        spline = new Spline(new Point(new Vector3(0, 0, 0), 1), new Point(new Vector3(0, 0, 1), 1f), new Point(new Vector3(0, 0, 2), 1f), new Point(new Vector3(0, 0, 3), 1));
     }
 
     // Update is called once per frame
@@ -49,13 +47,9 @@ public class UnitySpline : MonoBehaviour
 
             if (ShowSplineContolPoints)
             {
-                Gizmos.color = Color.red;
-                Gizmos.DrawSphere(spline.p0.Position, 0.1f);
-                Gizmos.DrawSphere(spline.p1.Position, 0.1f);
-                Gizmos.DrawSphere(spline.p2.Position, 0.1f);
-                if (spline.p3 != null)
+                for (int i = 0; i < spline.controlPoints.Count; i++)
                 {
-                    Gizmos.DrawSphere(spline.p3.Position, 0.1f);
+                    Gizmos.DrawSphere(spline.GetControlPointAt(i).Position, 0.1f);
                 }
             }
             if (ShowTangens)

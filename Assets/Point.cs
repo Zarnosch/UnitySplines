@@ -60,5 +60,11 @@ public class Point : System.Object
 
         return new Point(new Vector3((B2 * C1 - B1 * C2) / denominator, 0, (A1 * C2 - A2 * C1) / denominator), 0.5f);
     }
+
+    override public String ToString()
+    {
+        String temp = Position.ToString() + " Weight: " + Weight;
+        return temp;
+    }
 }
 
