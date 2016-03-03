@@ -44,6 +44,7 @@ public class Point : System.Object
         return new Point(temp, (p0.Weight * p1));
     }
 
+
     public static Point intersect(Point p_0, Point v0, Point p_1, Point v1)
     {
         Vector2 p0 = new Vector2(p_0.Position.x, p_0.Position.z);
