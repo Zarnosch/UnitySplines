@@ -18,5 +18,10 @@ public class Vector2i : System.Object
         this.x = x;
         this.z = z;
     }
+
+    public override string ToString()
+    {
+        return "(" + this.x + ", " + this.z + ")";
+    }
 }
 

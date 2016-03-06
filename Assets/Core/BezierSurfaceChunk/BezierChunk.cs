@@ -90,5 +90,24 @@ public class BezierChunk : System.Object
         }
         return temp;
     }
+
+    public Vector3 GetPointAt(Vector2 uv)
+    {
+        Vector2i patch = new Vector2i((int)uv.x, (int)uv.y);
+        if (patch.z == PatchAmount && patch.x == PatchAmount)
+        {
+            return SurfacePatches[patch.x - 1, patch.z - 1].GetPointAt(new Vector2(1, 1));
+        }
+        else if (patch.x == PatchAmount)
+        {
+            return SurfacePatches[patch.x-1, patch.z].GetPointAt(new Vector2(1, uv.y % 1));
+        }
+        else if(patch.z == PatchAmount)
+        {
+            return SurfacePatches[patch.x, patch.z-1].GetPointAt(new Vector2(uv.x % 1, 1));
+        }
+
+        else return SurfacePatches[patch.x, patch.z].GetPointAt(new Vector2(uv.x % 1, uv.y % 1));
+    }
 }
 

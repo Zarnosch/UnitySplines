@@ -68,5 +68,26 @@ public class SurfacePatchMesh : System.Object
         }
         //Debug.Log(newVertices[0].ToString());
     }
+
+
+    public List<Vector3> GetVertices()
+    {
+        List<Vector3> temp = new List<Vector3>();
+        for(int i = 0; i < newVertices.Length; i++)
+        {
+            temp.Add(newVertices[i]);
+        }
+        return temp;
+    }
+
+    public List<Vector3> GetUVIndices()
+    {
+        List<Vector3> temp = new List<Vector3>();
+        for (int i = 0; i < newUV.Length; i++)
+        {
+            temp.Add(newUV[i]);
+        }
+        return temp;
+    }
 }
 
