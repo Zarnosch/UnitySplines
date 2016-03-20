@@ -32,13 +32,22 @@ public class ZNoise : System.Object
     /// </summary>
     public int Ocatves { get; set; }
     /// <summary>
-    /// Highest amount of the steepnes, which is going up (use something between 0 and 180) 0 is even, 90 is rectangular up etc
+    /// Highest amount of the steepnes, which is going up (use something between 0 and 90) 0 is even, 90 is rectangular up etc
     /// </summary>
     public float PositiveSteepnes { get; set; }
     /// <summary>
-    /// Highest amount of the steepnes, which is going down (use something between 0 and 180) 0 is even, 90 is rectangular down etc
+    /// Highest amount of the steepnes, which is going down (use something between 0 and 90) 0 is even, 90 is rectangular down etc
     /// </summary>
     public float NegativeSteepnes { get; set; }
+    /// <summary>
+    /// Highest amount of the Overhang (use something between 0 and 90) 0 is even, 90 is staight back 0 is no overhang at all
+    /// </summary>
+    public float Overhang { get; set; }
+    /// <summary>
+    /// 1 is very often 0 is never
+    /// </summary>
+    public float OverhangRatio { get; set; }
+
     /*****************************************************************/
     /// <summary>
     /// The noise, which is used in the top-chunk
@@ -71,20 +80,22 @@ public class ZNoise : System.Object
     public Point[,] calculatedPoints;
 
 
-    public ZNoise(EBiom biom, int seed, float steepness)
+    public ZNoise(EBiom biom, int seed, float steepness, float maxOverhang, float overhangRatio)
     {
         Seed = seed;
         UnityEngine.Random.seed = Seed;
         switch (biom)
         {
             case EBiom.Flat:
-                Range = 5;
+                Range = 50;
                 MaxHeight = 100;
                 MinHeight = 50;
                 CommonHeight = 75;
                 SizeToGenerate = 16;
                 PositiveSteepnes = steepness;
                 NegativeSteepnes = steepness;
+                Overhang = maxOverhang;
+                OverhangRatio = overhangRatio;
                 Ocatves = 4;
                 Continuity = 1;
                 break;
@@ -187,6 +198,57 @@ public class ZNoise : System.Object
         calculatedPoints[SizeToGenerate - 2, 1].Weight = 1;
         calculatedPoints[1, SizeToGenerate - 2].Weight = 1;
         calculatedPoints[SizeToGenerate - 2, SizeToGenerate - 2].Weight = 1;
+
+        // first create the points in the rows we already hald filled:
+        for (int x = 0; x < SizeToGenerate; x++)
+        {
+            for (int z = 0; z < SizeToGenerate; z++)
+            {
+                if (calculatedPoints[x, z] == null)
+                {
+                    if(x%3 == 0 || z%3 == 0 || x == 1 || z == 1 || x == SizeToGenerate-1 || z == SizeToGenerate - 1)
+                    {
+                        bool set = false;
+                        // another try to get g2
+                        // orthogonal
+                        if (z >= 2 && z <= SizeToGenerate - 4)
+                        {
+                            if (!set && calculatedPoints[x, z + 1] != null && calculatedPoints[x, z - 2] != null && calculatedPoints[x, z + 4] != null)
+                            {
+                                Vector3 v1 = calculatedPoints[x, z + 1].Position - calculatedPoints[x, z - 2].Position;
+                                Vector3 v2 = calculatedPoints[x, z + 1].Position - calculatedPoints[x, z + 4].Position;
+                                Vector3 t1 = calculatedPoints[x, z - 2].Position + (v1 * 2 / 3);
+                                Vector3 t2 = calculatedPoints[x, z + 4].Position + (v2 * 2 / 3);
+                                Vector3 t = t2 - t1;
+                                calculatedPoints[x, z] = new Point();
+                                calculatedPoints[x, z + 2] = new Point();
+                                calculatedPoints[x, z].Position = calculatedPoints[x, z + 1].Position - (t / 2);
+                                calculatedPoints[x, z + 2].Position = calculatedPoints[x, z + 1].Position + (t / 2);
+                                set = true;
+                            }
+                        }
+                        // vertical
+                        if (x >= 2 && x <= SizeToGenerate - 4)
+                        {
+                            if (!set && calculatedPoints[x + 1, z] != null && calculatedPoints[x - 2, z] != null && calculatedPoints[x + 4, z] != null)
+                            {
+                                Vector3 v1 = calculatedPoints[x + 1, z].Position - calculatedPoints[x - 2, z].Position;
+                                Vector3 v2 = calculatedPoints[x + 1, z].Position - calculatedPoints[x + 4, z].Position;
+                                Vector3 t1 = calculatedPoints[x - 2, z].Position + (v1 * 2 / 3);
+                                Vector3 t2 = calculatedPoints[x + 4, z].Position + (v2 * 2 / 3);
+                                Vector3 t = t2 - t1;
+                                calculatedPoints[x, z] = new Point();
+                                calculatedPoints[x + 2, z] = new Point();
+                                calculatedPoints[x, z].Position = calculatedPoints[x + 1, z].Position - (t / 2);
+                                calculatedPoints[x + 2, z].Position = calculatedPoints[x + 1, z].Position + (t / 2);
+                                set = true;
+                            }
+                        }
+                    }                    
+                }
+            }
+        }
+        // now the rows and columns just 1 index away from boundary
         // now create the other points with g1 continuity (for the beginning) mabey need some rework
         for (int x = 0; x < SizeToGenerate; x++)
         {
@@ -195,8 +257,47 @@ public class ZNoise : System.Object
                 if (calculatedPoints[x, z] == null)
                 {
                     bool set = false;
+                    // another try to get g2
+                    // orthogonal
+                    if(z >= 2 && z <= SizeToGenerate - 4)
+                    {
+                        if (!set && calculatedPoints[x, z +1] != null && calculatedPoints[x, z -2] != null && calculatedPoints[x, z +4] != null)
+                        {
+                            Vector3 v1 = calculatedPoints[x, z + 1].Position - calculatedPoints[x, z - 2].Position;
+                            Vector3 v2 = calculatedPoints[x, z + 1].Position - calculatedPoints[x, z + 4].Position;
+                            Vector3 t1 = calculatedPoints[x, z - 2].Position + (v1 * 2 / 3);
+                            Vector3 t2 = calculatedPoints[x, z + 4].Position + (v2 * 2 / 3);
+                            Vector3 t = t2 - t1;
+                            calculatedPoints[x, z] = new Point();
+                            calculatedPoints[x, z + 2] = new Point();
+                            calculatedPoints[x, z].Position = calculatedPoints[x, z + 1].Position - (t / 2);
+                            calculatedPoints[x, z + 2].Position = calculatedPoints[x, z + 1].Position + (t / 2);
+                            set = true;
+                        }
+                    }
+                    // vertical
+                    if (x >= 2 && x <= SizeToGenerate - 4)
+                    {
+                        if (!set && calculatedPoints[x + 1, z] != null && calculatedPoints[x - 2, z] != null && calculatedPoints[x + 4, z] != null)
+                        {
+                            Vector3 v1 = calculatedPoints[x + 1, z].Position - calculatedPoints[x - 2, z].Position;
+                            Vector3 v2 = calculatedPoints[x + 1, z].Position - calculatedPoints[x + 4, z].Position;
+                            Vector3 t1 = calculatedPoints[x - 2, z].Position + (v1 * 2 / 3);
+                            Vector3 t2 = calculatedPoints[x + 4, z].Position + (v2 * 2 / 3);
+                            Vector3 t = t2 - t1;
+                            calculatedPoints[x, z] = new Point();
+                            calculatedPoints[x + 2, z] = new Point();
+                            calculatedPoints[x, z].Position = calculatedPoints[x + 1, z].Position - (t / 2);
+                            calculatedPoints[x + 2, z].Position = calculatedPoints[x + 1, z].Position + (t / 2);
+                            set = true;
+                        }
+                    }
+                    if (!set)
+                    {
+                        Debug.Log("Couldn´t calculate c2 control points at X: " + x + " Z: " + z);
+                    }
                     // left and right point are given
-                    if(z > 0 && z < SizeToGenerate-1)
+                    if (z > 0 && z < SizeToGenerate-1 && !set)
                     {
                         if(calculatedPoints[x, z - 1] != null && calculatedPoints[x, z + 1] != null)
                         {
@@ -262,28 +363,36 @@ public class ZNoise : System.Object
         float maxSteep = Mathf.Sin(Mathf.Deg2Rad * PositiveSteepnes);
         float minSteep = Mathf.Sin(Mathf.Deg2Rad * NegativeSteepnes);
         float tempSteepness = Random.Range(maxSteep, -minSteep);
+        float maxOverhang = Mathf.Sin(Mathf.Deg2Rad * Overhang);
+        float tempOverhang = Random.Range((-maxOverhang)/10, 1);
+        //Debug.Log("Max Overhang: " + maxOverhang + " TempOverhang: " + tempOverhang);
+        if(Random.value >= OverhangRatio)
+        {
+            tempOverhang = 1;
+        }
+
         switch (direction)
         {
             case EDirection.MinusX:
-                temp = new Vector2(-1, tempSteepness);
+                temp = new Vector2(-1 * tempOverhang, tempSteepness);
                 temp = temp.normalized * Range*3;
                 value.x = temp.x;
                 value.y = temp.y;
                 break;
             case EDirection.PlusZ:
-                temp = new Vector2(1, tempSteepness);
+                temp = new Vector2(1 * tempOverhang, tempSteepness);
                 temp = temp.normalized * Range*3;
                 value.z = temp.x;
                 value.y = temp.y;
                 break;
             case EDirection.PlusX:
-                temp = new Vector2(1, tempSteepness);
+                temp = new Vector2(1 * tempOverhang, tempSteepness);
                 temp = temp.normalized * Range*3;
                 value.x = temp.x;
                 value.y = temp.y;
                 break;
             case EDirection.MinusZ:
-                temp = new Vector2(-1, tempSteepness);
+                temp = new Vector2(-1 * tempOverhang, tempSteepness);
                 temp = temp.normalized * Range*3;
                 value.z = temp.x;
                 value.y = temp.y;
@@ -310,7 +419,6 @@ public class ZNoise : System.Object
                     {
                         temp += "X: " + i + " Z: " + j + "Y: " + calculatedPoints[i, j].Position.y + "\n";
                     }
-
                 }
             }
             temp += "\n";

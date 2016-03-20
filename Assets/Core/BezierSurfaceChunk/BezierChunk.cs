@@ -24,20 +24,30 @@ public class BezierChunk : System.Object
     public int Resolution { get; set; }
     public int Seed { get; set; }
     public float Steepness { get; set; }
+    public float MaxOverhang { get; set; }
+    public float OverhangRatio { get; set; }
+    public Mesh MetaMesh;
+    private List<Vector3> metaVertices;
+    private List<Vector2> metaUVs;
+    private int[] metaTriangles;
 
-    public BezierChunk(int resolution, int seed, float steepness)
+    public BezierChunk(int resolution, int seed, float steepness, float maxOverhang, float overhangRatio)
     {
         Resolution = resolution;
         Positionkey = new Vector2i(0, 0);
         PointAmount = 16;
         Seed = seed;
         Steepness = steepness;
-        ChunkNoise = new ZNoise(EBiom.Flat, Seed, Steepness);
+        MaxOverhang = maxOverhang;
+        OverhangRatio = overhangRatio;
+        ChunkNoise = new ZNoise(EBiom.Flat, Seed, Steepness, maxOverhang, overhangRatio);
         ChunkNoise.SizeToGenerate = PointAmount;
         ChunkNoise.calculatePoints();
         PatchAmount = PointAmount / 3;
         SurfacePatches = new SurfacePatch[PatchAmount, PatchAmount];
-        Mesh = new SurfacePatchMesh[PatchAmount, PatchAmount];
+        AssignPatches();
+        CalculateMetaMesh();
+        //Mesh = new SurfacePatchMesh[PatchAmount, PatchAmount];
     }
 
     public void AssignPatches()
@@ -58,6 +68,9 @@ public class BezierChunk : System.Object
         }
     }
 
+    /// <summary>
+    /// Calculates a mesh for each Surface Patch
+    /// </summary>
     public void CalculateMeshes()
     {
         for (int i = 0; i < PatchAmount; i++)
@@ -68,6 +81,77 @@ public class BezierChunk : System.Object
                 Mesh[i, j].rebuild();
             }
         }
+    }
+
+    /// <summary>
+    /// Calculates one big Metamesh out of all BezierPatches
+    /// </summary>
+    public void CalculateMetaMesh()
+    {
+        //Debug.Log(Resolution);
+        MetaMesh = new Mesh();
+        metaVertices = new List<Vector3>();
+        metaTriangles = new int[Resolution * (Resolution * 6) * PatchAmount * PatchAmount];
+        metaUVs = new List<Vector2>();
+        for (int i = 0; i < PatchAmount; i++)
+        {
+            for (int j = 0; j < PatchAmount; j++)
+            {
+                for (int k = 0; k <= Resolution; k++)
+                {
+                    for (int l = 0; l <= Resolution; l++)
+                    {
+                        Vector2 temp = new Vector2((i + ((float)k / Resolution)), (j + ((float)l / Resolution)));
+                        metaVertices.Add(GetPointAt(temp));
+                        metaUVs.Add(new Vector2(i * Resolution + k, j * Resolution + l));
+                    }
+                }
+            }
+        }
+        MetaMesh.SetVertices(metaVertices);
+        MetaMesh.SetUVs(0, metaUVs);
+        // create the triangles
+        int countu = 0;
+        int triCount = 0;
+        int metaCounter = 0;
+        // patches in x direction
+        for (int i = 0; i < PatchAmount; i++)
+        {
+            // patches in z direction
+            for (int j = 0; j < PatchAmount; j++)
+            {
+                // runs per patch
+                for (int k = 0; k < Resolution * (Resolution * 6); k += 6)
+                {
+                    //Debug.Log(countu);
+                    if (k == 0 && countu != 0)
+                    {
+                        countu += 6;
+                        //Debug.Log("Trigger: " + countu);
+
+                    }
+                    if ((countu + 1) % (Resolution + 1) == 0)
+                    {
+                        countu++;
+                        //Debug.Log("Jump: " + countu);
+                    }
+                    //Debug.Log(countu);
+
+                    //Debug.Log("Counter: " + metaCounter + " Max: " + metaTriangles.Length);
+                    metaTriangles[metaCounter] = countu;
+                    metaTriangles[metaCounter + 1] = countu + 1;
+                    metaTriangles[metaCounter + 2] = countu + Resolution + 1;
+                    metaTriangles[metaCounter + 3] = countu + 1;
+                    metaTriangles[metaCounter + 4] = countu + Resolution + 2;
+                    metaTriangles[metaCounter + 5] = countu + Resolution + 1;
+                    triCount += 2;
+                    countu++;
+                    metaCounter += 6;
+                    //Debug.Log(countu);
+                }
+            }
+        }
+        MetaMesh.SetTriangles(metaTriangles, 0);
     }
 
     public override string ToString()
