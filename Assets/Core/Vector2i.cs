@@ -23,5 +23,19 @@ public class Vector2i : System.Object
     {
         return "(" + this.x + ", " + this.z + ")";
     }
+
+    public override int GetHashCode()
+    {
+        return x.GetHashCode() ^ z.GetHashCode();
+    }
+
+    public override bool Equals(object obj)
+    {
+        var other = obj as Vector2i;
+        if (other == null)
+            return false;
+
+        return this.x == other.x && this.z == other.z;
+    }
 }
 

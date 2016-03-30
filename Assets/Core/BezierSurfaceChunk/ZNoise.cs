@@ -79,6 +79,8 @@ public class ZNoise : System.Object
     /// </summary>
     public Point[,] calculatedPoints;
 
+    public Vector3 AverageMidPoint;
+
 
     public ZNoise(EBiom biom, int seed, float steepness, float maxOverhang, float overhangRatio)
     {
@@ -101,6 +103,7 @@ public class ZNoise : System.Object
                 break;
         }
         calculatedPoints = new Point[SizeToGenerate, SizeToGenerate];
+        //Debug.Log("initalized Noise!");
     }
 
     public Point[,] calculatePoints()
@@ -117,57 +120,143 @@ public class ZNoise : System.Object
 
         -> top is the top row etc
         -> so the indices need to be assigned, depending from which side we start to generate the points
-
         */
-        // first detect, if there are points needed to be assigned from other chunks
-        if(TopZNoise != null)
-        {
+        //Debug.Log(ToString());
+        CalculateKnotvectors();
+        //Debug.Log(ToString());
+        CalculateNaturalEndCondition();
+        //Debug.Log(ToString());
+        CalculateTwirstVectors();
+        //Debug.Log(ToString());
+        CalculateInBetweenPointsC2();
+        //Debug.Log(ToString());
+        return calculatedPoints;
+    }
 
+    public Point[,] recalculatePoints()
+    {
+        //Debug.Log(ToString());
+        CalculateNaturalEndCondition();
+        //Debug.Log(ToString());
+        CalculateTwirstVectors();
+        //Debug.Log(ToString());
+        CalculateInBetweenPointsC2();
+        //Debug.Log(ToString());
+        return calculatedPoints;
+    }
+
+    /// <summary>
+    /// Calculates the KnotVectors, if the endpoints aren´t given, calculate with the range
+    /// </summary>
+    public void CalculateKnotvectors()
+    {
+        // first detect, if there are points needed to be assigned from other chunks
+        //Debug.Log("CalculateKnotvectors!");
+        if (TopZNoise != null)
+        {
+            //Debug.Log("TopNoiseFound");
+            for(int z = 0; z < SizeToGenerate; z++)
+            {
+                // c0 continuity
+                calculatedPoints[0, z] = TopZNoise.calculatedPoints[SizeToGenerate-1, z];
+                calculatedPoints[0, z].Weight = 1;
+                // c1 continuity
+                calculatedPoints[1, z] = calculatedPoints[0, z] + calculatedPoints[0, z] - TopZNoise.calculatedPoints[SizeToGenerate - 1, z];
+                calculatedPoints[1, z].Weight = 1;
+            }
         }
         if (BotZNoise != null)
         {
-
+            //Debug.Log("BotNoiseFound");
+            for (int z = 0; z < SizeToGenerate; z++)
+            {
+                // c0 continuity
+                calculatedPoints[SizeToGenerate-1, z] = BotZNoise.calculatedPoints[0, z];
+                calculatedPoints[SizeToGenerate-1, z].Weight = 1;
+                // c1 continuity
+                calculatedPoints[SizeToGenerate - 2, z] = calculatedPoints[SizeToGenerate- 1, z] + calculatedPoints[SizeToGenerate-1, z] - BotZNoise.calculatedPoints[1, z];
+                calculatedPoints[SizeToGenerate - 2, z].Weight = 1;
+            }
         }
         if (LeftZNoise != null)
         {
-
+            //Debug.Log("LeftNoiseFound");
+            for (int x = 0; x < SizeToGenerate; x++)
+            {
+                // c0 continuity
+                calculatedPoints[x, 0] = LeftZNoise.calculatedPoints[x, SizeToGenerate-1];
+                calculatedPoints[x, 0].Weight = 1;
+                // c1 continuity
+                calculatedPoints[x, 1] = calculatedPoints[x, 0] + calculatedPoints[x, 0] - LeftZNoise.calculatedPoints[x, SizeToGenerate - 1];
+                calculatedPoints[x, 1].Weight = 1;
+            }
         }
         if (RightZNoise != null)
         {
-
-        }
-        // now create the knotvectors, starting from top, if there are no other sides given
-        for(int x = 0; x < SizeToGenerate; x+=3)
-        {
-            for (int z = 0; z < SizeToGenerate; z+=3)
+            //Debug.Log("RightNoiseFound");
+            for (int x = 0; x < SizeToGenerate; x++)
             {
-                //first entry
-                if (x == 0 && z == 0)
-                {
-                    calculatedPoints[x, z] = new Point(new Vector3(0, CommonHeight, 0), 1);
-                }
-                //first row in z direction
-                else if(x == 0 && z >= 1)
-                {
-                    calculatedPoints[x, z] = new Point(calculatedPoints[x, z - 3].Position + rndKnotVector(EDirection.MinusZ), 1);
-                    //Debug.Log("z: " + calculatedPoints[x, z].Position);
-                }
-                //first row in x direction
-                else if (x >= 1 && z == 0)
-                {
-                    calculatedPoints[x, z] = new Point(calculatedPoints[x-3, z].Position + rndKnotVector(EDirection.MinusX), 1);
-                    //Debug.Log("x: " + calculatedPoints[x, z].Position);
-                }
-                //all other rows
-                else if (x >= 1 && z >= 1)
-                {
-                    Vector3 a = rndKnotVector(EDirection.MinusX);
-                    Vector3 b = rndKnotVector(EDirection.MinusZ);
-                    //Vector3 temp = new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
-                    calculatedPoints[x, z] = new Point(calculatedPoints[x - 3, z - 3].Position + b + a, 1);
-                }
+                // c0 continuity
+                calculatedPoints[x, SizeToGenerate-1] = RightZNoise.calculatedPoints[x, 0];
+                calculatedPoints[x, SizeToGenerate-1].Weight = 1;
+                // c1 continuity
+                calculatedPoints[x, SizeToGenerate - 2] = calculatedPoints[x, SizeToGenerate-1] + calculatedPoints[x, SizeToGenerate-1] - RightZNoise.calculatedPoints[x, 1];
+                calculatedPoints[x, SizeToGenerate - 2].Weight = 1;
             }
         }
+        
+        // now create the knotvectors, starting from top
+        for (int x = 0; x < SizeToGenerate; x += 3)
+        {
+            for (int z = 0; z < SizeToGenerate; z += 3)
+            {
+                //check, if they aren´t already calculated through the neighbourhood chunks
+                if (calculatedPoints[x, z] == null)
+                {
+                    //first entry
+                    if (x == 0 && z == 0)
+                    {
+                        if (RightZNoise != null || BotZNoise != null)
+                        {
+                            Vector3 botRight = calculatedPoints[SizeToGenerate-1, SizeToGenerate-1].Position;
+                            Vector3 topLeft = new Vector3(botRight.x + (Range * (SizeToGenerate - 1)), CommonHeight, botRight.z + (Range * (SizeToGenerate - 1)));
+                            calculatedPoints[x, z] = new Point(topLeft, 1);
+                        }
+                        else
+                        {
+                            calculatedPoints[x, z] = new Point(new Vector3(0, CommonHeight, 0), 1);
+                        }
+                        
+                    }
+
+                    //first row in z direction
+                    else if (x == 0 && z >= 1)
+                    {
+                        calculatedPoints[x, z] = new Point(calculatedPoints[x, z - 3].Position + rndKnotVector(EDirection.MinusZ), 1);
+                    }
+                    //first row in x direction
+                    else if (x >= 1 && z == 0)
+                    {
+                        calculatedPoints[x, z] = new Point(calculatedPoints[x - 3, z].Position + rndKnotVector(EDirection.MinusX), 1);
+                    }
+                    //all other rows
+                    else if (x >= 1 && z >= 1)
+                    {
+                        Vector3 a = rndKnotVector(EDirection.MinusX);
+                        Vector3 b = rndKnotVector(EDirection.MinusZ);
+                        //Vector3 temp = new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
+                        calculatedPoints[x, z] = new Point(calculatedPoints[x - 3, z - 3].Position + b + a, 1);
+                    }
+                }                
+            }
+        }
+    }
+
+    /// <summary>
+    /// calculates the points near the end so it goes with the natural end condition
+    /// </summary>
+    public void CalculateNaturalEndCondition()
+    {
         // now create thePoints for the natural end condition
         for (int z = 0; z < SizeToGenerate; z += 3)
         {
@@ -176,7 +265,7 @@ public class ZNoise : System.Object
         }
         for (int z = 0; z < SizeToGenerate; z += 3)
         {
-            calculatedPoints[SizeToGenerate-2, z] = (calculatedPoints[SizeToGenerate - 1, z] + calculatedPoints[SizeToGenerate - 4, z]) * 0.5f;
+            calculatedPoints[SizeToGenerate - 2, z] = (calculatedPoints[SizeToGenerate - 1, z] + calculatedPoints[SizeToGenerate - 4, z]) * 0.5f;
             calculatedPoints[SizeToGenerate - 2, z].Weight = 1;
         }
         for (int x = 0; x < SizeToGenerate; x += 3)
@@ -189,6 +278,13 @@ public class ZNoise : System.Object
             calculatedPoints[x, SizeToGenerate - 2] = (calculatedPoints[x, SizeToGenerate - 1] + calculatedPoints[x, SizeToGenerate - 4]) * 0.5f;
             calculatedPoints[x, SizeToGenerate - 2].Weight = 1;
         }
+    }
+
+    /// <summary>
+    /// Calculates the twirstvectors
+    /// </summary>
+    public void CalculateTwirstVectors()
+    {
         // now create the twist vectors
         calculatedPoints[1, 1] = calculatedPoints[0, 0] + (calculatedPoints[1, 0] - calculatedPoints[0, 0]) + (calculatedPoints[0, 1] - calculatedPoints[0, 0]);
         calculatedPoints[SizeToGenerate - 2, 1] = calculatedPoints[SizeToGenerate - 1, 0] + (calculatedPoints[SizeToGenerate - 2, 0] - calculatedPoints[SizeToGenerate - 1, 0]) + (calculatedPoints[SizeToGenerate - 1, 1] - calculatedPoints[SizeToGenerate - 1, 0]);
@@ -198,7 +294,13 @@ public class ZNoise : System.Object
         calculatedPoints[SizeToGenerate - 2, 1].Weight = 1;
         calculatedPoints[1, SizeToGenerate - 2].Weight = 1;
         calculatedPoints[SizeToGenerate - 2, SizeToGenerate - 2].Weight = 1;
+    }
 
+    /// <summary>
+    /// helper method, which calculates the missing bezierpoints if the knotvecors, the endcondition and the twirstvectors are calculated
+    /// </summary>
+    public void CalculateInBetweenPointsC2()
+    {
         // first create the points in the rows we already hald filled:
         for (int x = 0; x < SizeToGenerate; x++)
         {
@@ -206,7 +308,7 @@ public class ZNoise : System.Object
             {
                 if (calculatedPoints[x, z] == null)
                 {
-                    if(x%3 == 0 || z%3 == 0 || x == 1 || z == 1 || x == SizeToGenerate-1 || z == SizeToGenerate - 1)
+                    if (x % 3 == 0 || z % 3 == 0 || x == 1 || z == 1 || x == SizeToGenerate - 1 || z == SizeToGenerate - 1)
                     {
                         bool set = false;
                         // another try to get g2
@@ -244,7 +346,7 @@ public class ZNoise : System.Object
                                 set = true;
                             }
                         }
-                    }                    
+                    }
                 }
             }
         }
@@ -259,9 +361,9 @@ public class ZNoise : System.Object
                     bool set = false;
                     // another try to get g2
                     // orthogonal
-                    if(z >= 2 && z <= SizeToGenerate - 4)
+                    if (z >= 2 && z <= SizeToGenerate - 4)
                     {
-                        if (!set && calculatedPoints[x, z +1] != null && calculatedPoints[x, z -2] != null && calculatedPoints[x, z +4] != null)
+                        if (!set && calculatedPoints[x, z + 1] != null && calculatedPoints[x, z - 2] != null && calculatedPoints[x, z + 4] != null)
                         {
                             Vector3 v1 = calculatedPoints[x, z + 1].Position - calculatedPoints[x, z - 2].Position;
                             Vector3 v2 = calculatedPoints[x, z + 1].Position - calculatedPoints[x, z + 4].Position;
@@ -296,61 +398,11 @@ public class ZNoise : System.Object
                     {
                         Debug.Log("Couldn´t calculate c2 control points at X: " + x + " Z: " + z);
                     }
-                    // left and right point are given
-                    if (z > 0 && z < SizeToGenerate-1 && !set)
-                    {
-                        if(calculatedPoints[x, z - 1] != null && calculatedPoints[x, z + 1] != null)
-                        {
-                            calculatedPoints[x, z] = (calculatedPoints[x, z - 1] + calculatedPoints[x, z + 1]) * 0.5f;
-                            set = true;
-                        }
-                    }
-                    // top and bot point are given
-                    if (x > 0 && x < SizeToGenerate-1 && !set)
-                    {
-                        if (calculatedPoints[x - 1, z] != null && calculatedPoints[x + 1, z] != null)
-                        {
-                            calculatedPoints[x, z] = (calculatedPoints[x - 1, z] + calculatedPoints[x + 1, z]) * 0.5f;
-                            set = true;
-                        }
-                    }
-                    // 2 points up and left are given                    
-                    if (z > 0 && x > 0 && !set)
-                    {
-                        calculatedPoints[x, z] = calculatedPoints[x - 1, z - 1] + (calculatedPoints[x - 1, z] - calculatedPoints[x - 1, z - 1]) + (calculatedPoints[x, z - 1] - calculatedPoints[x - 1, z - 1]);
-                        set = true;
-                    }                   
-                    // only 2 left points are given
-                    if (z > 1 && !set)
-                    {
-                        if (calculatedPoints[x, z - 1] != null && calculatedPoints[x, z - 2] != null)
-                        {
-                            calculatedPoints[x, z] = calculatedPoints[x, z - 1] + (calculatedPoints[x, z - 1] - calculatedPoints[x, z - 2]);
-                            set = true;
-                        }
-                    }
-                    // only 2 top points are given
-                    if (x > 1 && !set)
-                    {
-                        if (calculatedPoints[x - 1, z] != null && calculatedPoints[x - 2, z] != null)
-                        {
-                            calculatedPoints[x, z] = calculatedPoints[x - 1, z] + (calculatedPoints[x - 1, z] - calculatedPoints[x - 2, z]);
-                            set = true;
-                        }
-                    }
-                    if (!set)
-                    {
-                        Debug.Log("Critical calculation in ZNoise!");
-                    }
                     calculatedPoints[x, z].Weight = 1;
                 }
             }
         }
-        //Debug.Log("BezierPoints Calculated!");
-        //Debug.Log(ToString());
-        return calculatedPoints;
     }
-
 
     /// <summary>
     /// Returns a vector, in the direction, asked for, with perspective to the maxSteepnes and scaled with the Range*3 because its every third point (knotvector)
@@ -401,7 +453,10 @@ public class ZNoise : System.Object
         return value;
     }
 
-
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns>a string which contains a 2d map, which shows, which bezierpoints are calculated</returns>
     public override string ToString()
     {
         string temp = "";
@@ -417,7 +472,8 @@ public class ZNoise : System.Object
                 {
                     if(calculatedPoints[i, j].Position != null)
                     {
-                        temp += "X: " + i + " Z: " + j + "Y: " + calculatedPoints[i, j].Position.y + "\n";
+                        //temp += "X: " + i + " Z: " + j + "Y: " + calculatedPoints[i, j].Position.y + "\n";
+                        temp += "+";
                     }
                 }
             }

@@ -12,12 +12,12 @@ public class BezierChunk : System.Object
     public Vector2 Position { get; set; }
     public int PointAmount { get; set; }
     public int PatchAmount { get; set; }
-    public UnityBezierChunk Up { get; set; }
-    public UnityBezierChunk Down { get; set; }
-    public UnityBezierChunk Left { get; set; }
-    public UnityBezierChunk Right { get; set; }
-    public UnityBezierChunk In { get; set; }
-    public UnityBezierChunk Out { get; set; }
+    public BezierChunk Up { get; set; }
+    public BezierChunk Down { get; set; }
+    public BezierChunk Left { get; set; }
+    public BezierChunk Right { get; set; }
+    public BezierChunk In { get; set; }
+    public BezierChunk Out { get; set; }
     public SurfacePatch[,] SurfacePatches { get; set; }
     public ZNoise ChunkNoise { get; set; }
     public SurfacePatchMesh[,] Mesh { get; set; }
@@ -30,6 +30,9 @@ public class BezierChunk : System.Object
     private List<Vector3> metaVertices;
     private List<Vector2> metaUVs;
     private int[] metaTriangles;
+    public GameObject GOChunk;
+    public bool JustUpdated;
+    public ChunkGenerator GenRef;
 
     public BezierChunk(int resolution, int seed, float steepness, float maxOverhang, float overhangRatio)
     {
@@ -44,14 +47,39 @@ public class BezierChunk : System.Object
         ChunkNoise.SizeToGenerate = PointAmount;
         ChunkNoise.calculatePoints();
         PatchAmount = PointAmount / 3;
-        SurfacePatches = new SurfacePatch[PatchAmount, PatchAmount];
         AssignPatches();
         CalculateMetaMesh();
         //Mesh = new SurfacePatchMesh[PatchAmount, PatchAmount];
     }
+    
+    public BezierChunk()
+    {
+
+    }
+
+    public void AssignNoise()
+    {
+        ChunkNoise = new ZNoise(EBiom.Flat, Seed, Steepness, MaxOverhang, OverhangRatio);
+        ChunkNoise.SizeToGenerate = PointAmount;
+        AssignNeighboursToZNoise();
+        ChunkNoise.calculatePoints();
+        PatchAmount = PointAmount / 3;
+    }
+    public void AssignNeighboursToZNoise()
+    {
+        if(Left != null)
+            ChunkNoise.LeftZNoise = Left.ChunkNoise;
+        if(Right != null)
+            ChunkNoise.RightZNoise = Right.ChunkNoise;
+        if(Up != null)
+            ChunkNoise.TopZNoise = Up.ChunkNoise;
+        if(Down != null)
+            ChunkNoise.BotZNoise = Down.ChunkNoise;
+    }
 
     public void AssignPatches()
     {
+        SurfacePatches = new SurfacePatch[PatchAmount, PatchAmount];
         for (int x = 0; x < PatchAmount; x++)
         {
             for (int z = 0; z < PatchAmount; z++)
@@ -66,6 +94,7 @@ public class BezierChunk : System.Object
                 }
             }
         }
+        //Debug.Log("Pachtes of Chunk " + Positionkey + " have been assigned!");
     }
 
     /// <summary>
@@ -178,6 +207,7 @@ public class BezierChunk : System.Object
     public Vector3 GetPointAt(Vector2 uv)
     {
         Vector2i patch = new Vector2i((int)uv.x, (int)uv.y);
+        //Debug.Log(patch);
         if (patch.z == PatchAmount && patch.x == PatchAmount)
         {
             return SurfacePatches[patch.x - 1, patch.z - 1].GetPointAt(new Vector2(1, 1));
@@ -192,6 +222,56 @@ public class BezierChunk : System.Object
         }
 
         else return SurfacePatches[patch.x, patch.z].GetPointAt(new Vector2(uv.x % 1, uv.y % 1));
+    }
+
+    public void InstantiateThisChunk()
+    {
+        GOChunk = new GameObject();
+        //GOChunk.transform.position = SurfacePatches[0, 0].BezierPoints[0, 0].Position;
+        GOChunk.name = "BezierChunk" + Positionkey;
+        GOChunk.AddComponent<MeshFilter>();
+        GOChunk.AddComponent<MeshRenderer>();
+        GOChunk.AddComponent<UnityBezierChunk>();
+        MeshFilter tempFilter = GOChunk.GetComponent<MeshFilter>();
+        tempFilter.mesh = MetaMesh;
+        MeshRenderer tempRenderer = GOChunk.GetComponent<MeshRenderer>();
+        tempRenderer.material = new Material(Shader.Find("Standard"));
+        UnityBezierChunk UBChunk = GOChunk.GetComponent<UnityBezierChunk>();
+        UBChunk.chunk = this;
+        UBChunk.MetaMesh = MetaMesh;
+        GOChunk.SetActive(true);
+    }
+
+    public void RebuildChunk()
+    {
+        AssignNoise();
+        AssignPatches();
+        CalculateMetaMesh();
+        
+        MeshFilter tempFilter = GOChunk.GetComponent<MeshFilter>();
+        tempFilter.mesh = MetaMesh;
+        MeshRenderer tempRenderer = GOChunk.GetComponent<MeshRenderer>();
+        tempRenderer.material = new Material(Shader.Find("Standard"));
+        UnityBezierChunk UBChunk = GOChunk.GetComponent<UnityBezierChunk>();
+        UBChunk.chunk = this;
+        UBChunk.MetaMesh = MetaMesh;
+        GOChunk.SetActive(true);
+    }
+    public void RebuildChunkWithNeighbourUpdate()
+    {
+        AssignNoise();
+        AssignPatches();
+        GenRef.Cache.UpdateNeighbours(Positionkey);
+        CalculateMetaMesh();
+
+        MeshFilter tempFilter = GOChunk.GetComponent<MeshFilter>();
+        tempFilter.mesh = MetaMesh;
+        MeshRenderer tempRenderer = GOChunk.GetComponent<MeshRenderer>();
+        tempRenderer.material = new Material(Shader.Find("Standard"));
+        UnityBezierChunk UBChunk = GOChunk.GetComponent<UnityBezierChunk>();
+        UBChunk.chunk = this;
+        UBChunk.MetaMesh = MetaMesh;
+        GOChunk.SetActive(true);
     }
 }
 

@@ -25,11 +25,11 @@ public class UnityBezierChunk : MonoBehaviour
     public int Resolution = 5;
     private int prevResolution = 5;
 
-    [Range(1, 5)]
-    public int ShowPatchesX = 5;
+    [Range(0, 5)]
+    public int ShowPatchesX = 0;
 
-    [Range(1, 5)]
-    public int ShowPatchesZ = 5;
+    [Range(0, 5)]
+    public int ShowPatchesZ = 0;
 
     [Range(0, 1337)]
     public int Seed = 21;
@@ -50,27 +50,28 @@ public class UnityBezierChunk : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        chunk = new BezierChunk(Resolution, Seed, Steepness, MaxOverhang, OverhangRatio);
-        meshFilter = GetComponent<MeshFilter>();
-        meshFilter.mesh = chunk.MetaMesh;
 
-}
+    }
 
     // Update is called once per frame
     void Update()
     {
-       
         if (prevSeed != Seed || prevSteepness != Steepness || prevResolution != Resolution || prevMaxOverhang != MaxOverhang || prevOverhangRatio != OverhangRatio)
         {
-            chunk = new BezierChunk(Resolution, Seed, Steepness, MaxOverhang, OverhangRatio);
-            meshFilter.mesh = chunk.MetaMesh;
-            //chunk.CalculateMetaMesh();
+            // assign the changes to the chunk
+            chunk.Resolution = Resolution;
+            chunk.Steepness = Steepness;
+            chunk.Seed = Seed;
+            chunk.MaxOverhang = MaxOverhang;
+            chunk.OverhangRatio = OverhangRatio;
+            // rebuild chunk with the new settings
+            chunk.RebuildChunkWithNeighbourUpdate();     
+            // save changes
             prevSeed = Seed;
             prevSteepness = Steepness;
             prevResolution = Resolution;
             prevMaxOverhang = MaxOverhang;
             prevOverhangRatio = OverhangRatio;
-            chunk.AssignPatches();
         }
     }
 
