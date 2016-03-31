@@ -10,11 +10,7 @@ public class ChunkCache
     /// <summary>
     /// Actuall containing the cunkdata, which can be used with the key from the hashmap
     /// </summary>    
-    Dictionary<Vector2i, BezierChunk> GeneratedChunksMap = new Dictionary<Vector2i, BezierChunk>();
-    /// <summary>
-    /// A Hashmap of all generated Chunks
-    /// </summary>
-    //HashSet<Vector2i> GeneratedChunks = new HashSet<Vector2i>();
+    public Dictionary<Vector2i, BezierChunk> GeneratedChunksMap = new Dictionary<Vector2i, BezierChunk>();
     /// <summary>
     /// List of all chunks, which need to be generated
     /// </summary>
@@ -27,19 +23,32 @@ public class ChunkCache
     /// List of chunks, which are actually generated
     /// </summary>
     public List<Vector2i> ChunksInGeneration = new List<Vector2i>();
-
+    /// <summary>
+    /// just a reference to the Chunkgenerator for acessing in O(1), a ref doen´t cost anything, getComponent does
+    /// </summary>
     public ChunkGenerator GenRef;
+    
+    public int StartSeed { get; set; }
+    public int Resolution { get; set; }
+    public float Steepness { get; set; }
+    public float MaxOverhang { get; set; }
+    public float OverhangRatio { get; set; }
+    /// <summary>
+    /// Amount of patches of a bezierchunk
+    /// for the first patch, 4 bezierpoints are required, for every next patch, +3 bezierpoints
+    /// </summary>
+    public int Patchamount { get; set; }
 
     public ChunkCache(ChunkGenerator GenRef)
     {
         this.GenRef = GenRef;
     }
 
-    public int StartSeed { get; set; }
-    public int Resolution { get; set; }
-    public float Steepness { get; set; }
-    public float MaxOverhang { get; set; }
-    public float OverhangRatio { get; set; }
+
+    public void Update(Vector3 position)
+    {
+
+    }
 
     public bool GenerateChunk(Vector2i _generateKey)
     {
@@ -52,11 +61,12 @@ public class ChunkCache
         // create new empty chunk
         BezierChunk toGenerate = new BezierChunk();
         toGenerate.Resolution = Resolution;
-        toGenerate.Seed = StartSeed;
+        toGenerate.Seed = StartSeed + _generateKey.GetHashCode();
+        //Debug.Log(toGenerate.Seed);
         toGenerate.Steepness = Steepness;
         toGenerate.MaxOverhang = MaxOverhang;
         toGenerate.OverhangRatio = OverhangRatio;
-        toGenerate.PointAmount = 16;
+        toGenerate.PatchAmount = Patchamount;
         toGenerate.Positionkey = _generateKey;
         toGenerate.GenRef = GenRef;
         // link neighbours
@@ -85,12 +95,10 @@ public class ChunkCache
         UpdateNeighbours(_generateKey);
         // delete the created chunk out of the list of chunks which are in creation
         ChunksInGeneration.Remove(_generateKey);
-        //Debug.Log(GeneratedChunksMap.TryGetValue(_generateKey, out tempLeft));
-        //Debug.Log(GeneratedChunksMap.TryGetValue(new Vector2i(0, 0), out tempLeft));
         return true;
     }
 
-    #region update ChunkNeighbourNoise
+    #region update ChunkNeighbourNoise and rebuild the NeighbourChunks
     public void UpdateNeighbours(Vector2i midVec)
     {
         BezierChunk temp;

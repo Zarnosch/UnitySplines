@@ -13,6 +13,10 @@ public class ChunkGenerator : MonoBehaviour
     public int Resolution = 5;
     private int prevResolution = 5;
 
+    [Range(1, 42)]
+    public int PatchAmount = 5;
+    private int patchAmount = 5;
+
     [Range(0, 1337)]
     public int Seed = 21;
     private int prevSeed = 21;
@@ -41,12 +45,19 @@ public class ChunkGenerator : MonoBehaviour
         Cache.Steepness = Steepness;
         Cache.MaxOverhang = MaxOverhang;
         Cache.OverhangRatio = OverhangRatio;
+        Cache.Patchamount = PatchAmount;
+        
         
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(PatchAmount != patchAmount && Cache.GeneratedChunksMap.Count == 0)
+        {
+            Cache.Patchamount = PatchAmount;
+            patchAmount = PatchAmount;
+        }
         if (Input.GetKeyDown("w"))
         {
             Cache.Resolution = Resolution;

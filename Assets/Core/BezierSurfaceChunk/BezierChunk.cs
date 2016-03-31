@@ -5,12 +5,12 @@ using System.Text;
 using UnityEngine;
 using System.Collections;
 
-
 public class BezierChunk : System.Object
 {
     public Vector2i Positionkey {get; set; }
+    public Vector3 AverageMidPoint { get; set; }
     public Vector2 Position { get; set; }
-    public int PointAmount { get; set; }
+    private int PointAmount;
     public int PatchAmount { get; set; }
     public BezierChunk Up { get; set; }
     public BezierChunk Down { get; set; }
@@ -38,18 +38,17 @@ public class BezierChunk : System.Object
     {
         Resolution = resolution;
         Positionkey = new Vector2i(0, 0);
-        PointAmount = 16;
-        Seed = seed;
+        PointAmount = 1 + 3*PatchAmount;
+        Seed = seed + Positionkey.GetHashCode();
         Steepness = steepness;
         MaxOverhang = maxOverhang;
         OverhangRatio = overhangRatio;
         ChunkNoise = new ZNoise(EBiom.Flat, Seed, Steepness, maxOverhang, overhangRatio);
         ChunkNoise.SizeToGenerate = PointAmount;
         ChunkNoise.calculatePoints();
-        PatchAmount = PointAmount / 3;
+        AverageMidPoint = ChunkNoise.AverageMidPoint;
         AssignPatches();
         CalculateMetaMesh();
-        //Mesh = new SurfacePatchMesh[PatchAmount, PatchAmount];
     }
     
     public BezierChunk()
@@ -60,11 +59,12 @@ public class BezierChunk : System.Object
     public void AssignNoise()
     {
         ChunkNoise = new ZNoise(EBiom.Flat, Seed, Steepness, MaxOverhang, OverhangRatio);
+        PointAmount = 1 + 3 * PatchAmount;
         ChunkNoise.SizeToGenerate = PointAmount;
         AssignNeighboursToZNoise();
         ChunkNoise.calculatePoints();
-        PatchAmount = PointAmount / 3;
     }
+
     public void AssignNeighboursToZNoise()
     {
         if(Left != null)
@@ -239,6 +239,7 @@ public class BezierChunk : System.Object
         UnityBezierChunk UBChunk = GOChunk.GetComponent<UnityBezierChunk>();
         UBChunk.chunk = this;
         UBChunk.MetaMesh = MetaMesh;
+        UBChunk.AverageMidPoint = AverageMidPoint;
         GOChunk.SetActive(true);
     }
 
@@ -255,6 +256,7 @@ public class BezierChunk : System.Object
         UnityBezierChunk UBChunk = GOChunk.GetComponent<UnityBezierChunk>();
         UBChunk.chunk = this;
         UBChunk.MetaMesh = MetaMesh;
+        UBChunk.AverageMidPoint = AverageMidPoint;
         GOChunk.SetActive(true);
     }
     public void RebuildChunkWithNeighbourUpdate()
@@ -271,6 +273,7 @@ public class BezierChunk : System.Object
         UnityBezierChunk UBChunk = GOChunk.GetComponent<UnityBezierChunk>();
         UBChunk.chunk = this;
         UBChunk.MetaMesh = MetaMesh;
+        UBChunk.AverageMidPoint = AverageMidPoint;
         GOChunk.SetActive(true);
     }
 }

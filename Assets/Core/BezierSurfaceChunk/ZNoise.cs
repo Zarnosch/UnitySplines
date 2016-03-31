@@ -20,7 +20,11 @@ public class ZNoise : System.Object
     /// </summary>
     public float MinHeight { get; set; }
     /// <summary>
-    /// The common hight, used to initialize, if there are no bounding restrictions, or set by the boundingrestrictions
+    /// The average midpoint, used to initialize, and to get in touch of global position and height of the noisechunk
+    /// </summary>
+    public Vector3 AverageMidPoint{ get; set; }
+    /// <summary>
+    /// The height of the upper-left point of a chunk (+x,+z) for initialisation if the chunk has no neighbours in +x and +z direction
     /// </summary>
     public float CommonHeight { get; set; }
     /// <summary>
@@ -79,8 +83,6 @@ public class ZNoise : System.Object
     /// </summary>
     public Point[,] calculatedPoints;
 
-    public Vector3 AverageMidPoint;
-
 
     public ZNoise(EBiom biom, int seed, float steepness, float maxOverhang, float overhangRatio)
     {
@@ -93,7 +95,7 @@ public class ZNoise : System.Object
                 MaxHeight = 100;
                 MinHeight = 50;
                 CommonHeight = 75;
-                SizeToGenerate = 16;
+                SizeToGenerate = 19;
                 PositiveSteepnes = steepness;
                 NegativeSteepnes = steepness;
                 Overhang = maxOverhang;
@@ -102,8 +104,6 @@ public class ZNoise : System.Object
                 Continuity = 1;
                 break;
         }
-        calculatedPoints = new Point[SizeToGenerate, SizeToGenerate];
-        //Debug.Log("initalized Noise!");
     }
 
     public Point[,] calculatePoints()
@@ -121,8 +121,24 @@ public class ZNoise : System.Object
         -> top is the top row etc
         -> so the indices need to be assigned, depending from which side we start to generate the points
         */
+        calculatedPoints = new Point[SizeToGenerate, SizeToGenerate];
         //Debug.Log(ToString());
         CalculateKnotvectors();
+        //Debug.Log(ToString());
+        CalculateNaturalEndCondition();
+        //Debug.Log(ToString());
+        CalculateTwirstVectors();
+        //Debug.Log(ToString());
+        CalculateInBetweenPointsC2();
+        //Debug.Log(ToString());
+        calculateAverageMidPoint();
+        //Debug.Log(AverageMidPoint);
+        return calculatedPoints;
+    }
+
+    public Point[,] recalculatePoints()
+    {
+        calculatedPoints = new Point[SizeToGenerate, SizeToGenerate];
         //Debug.Log(ToString());
         CalculateNaturalEndCondition();
         //Debug.Log(ToString());
@@ -133,16 +149,16 @@ public class ZNoise : System.Object
         return calculatedPoints;
     }
 
-    public Point[,] recalculatePoints()
+    public void calculateAverageMidPoint()
     {
-        //Debug.Log(ToString());
-        CalculateNaturalEndCondition();
-        //Debug.Log(ToString());
-        CalculateTwirstVectors();
-        //Debug.Log(ToString());
-        CalculateInBetweenPointsC2();
-        //Debug.Log(ToString());
-        return calculatedPoints;
+        for(int x = 0; x < SizeToGenerate; x++)
+        {
+            for (int z = 0; z < SizeToGenerate; z++)
+            {
+                AverageMidPoint += calculatedPoints[x, z].Position;
+            }
+        }
+        AverageMidPoint /= SizeToGenerate * SizeToGenerate;
     }
 
     /// <summary>
@@ -161,7 +177,7 @@ public class ZNoise : System.Object
                 calculatedPoints[0, z] = TopZNoise.calculatedPoints[SizeToGenerate-1, z];
                 calculatedPoints[0, z].Weight = 1;
                 // c1 continuity
-                calculatedPoints[1, z] = calculatedPoints[0, z] + calculatedPoints[0, z] - TopZNoise.calculatedPoints[SizeToGenerate - 1, z];
+                calculatedPoints[1, z] = calculatedPoints[0, z] + calculatedPoints[0, z] - TopZNoise.calculatedPoints[SizeToGenerate - 2, z];
                 calculatedPoints[1, z].Weight = 1;
             }
         }
@@ -187,7 +203,7 @@ public class ZNoise : System.Object
                 calculatedPoints[x, 0] = LeftZNoise.calculatedPoints[x, SizeToGenerate-1];
                 calculatedPoints[x, 0].Weight = 1;
                 // c1 continuity
-                calculatedPoints[x, 1] = calculatedPoints[x, 0] + calculatedPoints[x, 0] - LeftZNoise.calculatedPoints[x, SizeToGenerate - 1];
+                calculatedPoints[x, 1] = calculatedPoints[x, 0] + calculatedPoints[x, 0] - LeftZNoise.calculatedPoints[x, SizeToGenerate - 2];
                 calculatedPoints[x, 1].Weight = 1;
             }
         }
@@ -459,25 +475,34 @@ public class ZNoise : System.Object
     /// <returns>a string which contains a 2d map, which shows, which bezierpoints are calculated</returns>
     public override string ToString()
     {
+        //Debug.Log(SizeToGenerate);
+        //Debug.Log(calculatedPoints.LongLength);
         string temp = "";
-        for(int i = 0; i < SizeToGenerate; i++)
+        if(calculatedPoints == null)
         {
-            for (int j = 0; j < SizeToGenerate; j++)
+            temp += "Calculated Points 2dArray is not initialized, it should have a size of: " + SizeToGenerate;
+        }
+        else
+        {
+            for (int i = 0; i < SizeToGenerate; i++)
             {
-                if(calculatedPoints[i, j] == null)
+                for (int j = 0; j < SizeToGenerate; j++)
                 {
-                    temp += "#";
-                }
-                else
-                {
-                    if(calculatedPoints[i, j].Position != null)
+                    if (calculatedPoints[i, j] == null)
                     {
-                        //temp += "X: " + i + " Z: " + j + "Y: " + calculatedPoints[i, j].Position.y + "\n";
-                        temp += "+";
+                        temp += "#";
+                    }
+                    else
+                    {
+                        if (calculatedPoints[i, j].Position != null)
+                        {
+                            //temp += "X: " + i + " Z: " + j + "Y: " + calculatedPoints[i, j].Position.y + "\n";
+                            temp += "+";
+                        }
                     }
                 }
+                temp += "\n";
             }
-            temp += "\n";
         }
         return temp;
     }

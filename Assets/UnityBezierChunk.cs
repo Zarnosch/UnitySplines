@@ -15,8 +15,7 @@ public class UnityBezierChunk : MonoBehaviour
     private List<Vector2> metaUVs;
     private int[] metaTriangles;
     public Mesh MetaMesh;
-    //public CombineInstance[] combine;
-    public MeshFilter meshFilter;
+    public Vector3 AverageMidPoint;
 
     [Range(2, 2000)]
     public int Test = 1;
@@ -65,7 +64,8 @@ public class UnityBezierChunk : MonoBehaviour
             chunk.MaxOverhang = MaxOverhang;
             chunk.OverhangRatio = OverhangRatio;
             // rebuild chunk with the new settings
-            chunk.RebuildChunkWithNeighbourUpdate();     
+            chunk.RebuildChunkWithNeighbourUpdate();
+            AverageMidPoint = chunk.AverageMidPoint;     
             // save changes
             prevSeed = Seed;
             prevSteepness = Steepness;
@@ -84,7 +84,7 @@ public class UnityBezierChunk : MonoBehaviour
             {
                 if (chunk.SurfacePatches[i, j] != null)
                 {
-                    // Control Points
+                    // Control Points (only for surface patches)
                     Gizmos.color = Color.red;
                     for (int k = 0; k < 4; k++)
                     {
@@ -133,28 +133,11 @@ public class UnityBezierChunk : MonoBehaviour
                 }
             }
         }
-    /*
-    for (int t = 0; t < Test; t++)
-    {
-        Gizmos.color = Color.black;
-        Gizmos.DrawCube(metaVertices[t], new Vector3(0.5f, 0.9f, 0.5f));
-    }
-    */
     
     if(MetaMesh != null)
         {
             for (int t = 0; t < Test; t++)
             {
-                /*
-                for (int u = 0; u < Test; u++)
-                {
-                    for (int l = 0; l < 2; l++)
-                    {
-                        Gizmos.color = Color.black;
-                        Gizmos.DrawCube(MetaMesh.vertices[l], new Vector3(0.5f, 0.9f, 0.5f));
-                    }
-                }    
-                */
                 Gizmos.color = Color.black;
                 Gizmos.DrawCube(MetaMesh.vertices[t], new Vector3(0.5f, 0.9f, 0.5f));
             }
