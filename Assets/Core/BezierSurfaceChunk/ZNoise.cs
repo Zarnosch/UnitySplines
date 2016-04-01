@@ -94,7 +94,7 @@ public class ZNoise : System.Object
                 Range = 50;
                 MaxHeight = 100;
                 MinHeight = 50;
-                CommonHeight = 75;
+                CommonHeight = UnityEngine.Random.value * Range;
                 SizeToGenerate = 19;
                 PositiveSteepnes = steepness;
                 NegativeSteepnes = steepness;
@@ -276,23 +276,35 @@ public class ZNoise : System.Object
         // now create thePoints for the natural end condition
         for (int z = 0; z < SizeToGenerate; z += 3)
         {
-            calculatedPoints[1, z] = (calculatedPoints[0, z] + calculatedPoints[3, z]) * 0.5f;
-            calculatedPoints[1, z].Weight = 1;
+            if (calculatedPoints[1, z] == null)
+            {
+                calculatedPoints[1, z] = (calculatedPoints[0, z] + calculatedPoints[3, z]) * 0.5f;
+                calculatedPoints[1, z].Weight = 1;
+            }
         }
         for (int z = 0; z < SizeToGenerate; z += 3)
         {
-            calculatedPoints[SizeToGenerate - 2, z] = (calculatedPoints[SizeToGenerate - 1, z] + calculatedPoints[SizeToGenerate - 4, z]) * 0.5f;
-            calculatedPoints[SizeToGenerate - 2, z].Weight = 1;
+            if(calculatedPoints[SizeToGenerate - 2, z] == null)
+            {
+                calculatedPoints[SizeToGenerate - 2, z] = (calculatedPoints[SizeToGenerate - 1, z] + calculatedPoints[SizeToGenerate - 4, z]) * 0.5f;
+                calculatedPoints[SizeToGenerate - 2, z].Weight = 1;
+            }
         }
         for (int x = 0; x < SizeToGenerate; x += 3)
         {
-            calculatedPoints[x, 1] = (calculatedPoints[x, 0] + calculatedPoints[x, 3]) * 0.5f;
-            calculatedPoints[x, 1].Weight = 1;
+            if(calculatedPoints[x, 1] == null)
+            {
+                calculatedPoints[x, 1] = (calculatedPoints[x, 0] + calculatedPoints[x, 3]) * 0.5f;
+                calculatedPoints[x, 1].Weight = 1;
+            }
         }
         for (int x = 0; x < SizeToGenerate; x += 3)
         {
-            calculatedPoints[x, SizeToGenerate - 2] = (calculatedPoints[x, SizeToGenerate - 1] + calculatedPoints[x, SizeToGenerate - 4]) * 0.5f;
-            calculatedPoints[x, SizeToGenerate - 2].Weight = 1;
+            if(calculatedPoints[x, SizeToGenerate - 2] == null)
+            {
+                calculatedPoints[x, SizeToGenerate - 2] = (calculatedPoints[x, SizeToGenerate - 1] + calculatedPoints[x, SizeToGenerate - 4]) * 0.5f;
+                calculatedPoints[x, SizeToGenerate - 2].Weight = 1;
+            }
         }
     }
 
@@ -302,14 +314,27 @@ public class ZNoise : System.Object
     public void CalculateTwirstVectors()
     {
         // now create the twist vectors
-        calculatedPoints[1, 1] = calculatedPoints[0, 0] + (calculatedPoints[1, 0] - calculatedPoints[0, 0]) + (calculatedPoints[0, 1] - calculatedPoints[0, 0]);
-        calculatedPoints[SizeToGenerate - 2, 1] = calculatedPoints[SizeToGenerate - 1, 0] + (calculatedPoints[SizeToGenerate - 2, 0] - calculatedPoints[SizeToGenerate - 1, 0]) + (calculatedPoints[SizeToGenerate - 1, 1] - calculatedPoints[SizeToGenerate - 1, 0]);
-        calculatedPoints[1, SizeToGenerate - 2] = calculatedPoints[0, SizeToGenerate - 1] + (calculatedPoints[0, SizeToGenerate - 2] - calculatedPoints[0, SizeToGenerate - 1]) + (calculatedPoints[1, SizeToGenerate - 1] - calculatedPoints[0, SizeToGenerate - 1]);
-        calculatedPoints[SizeToGenerate - 2, SizeToGenerate - 2] = calculatedPoints[SizeToGenerate - 1, SizeToGenerate - 1] + (calculatedPoints[SizeToGenerate - 1, SizeToGenerate - 2] - calculatedPoints[SizeToGenerate - 1, SizeToGenerate - 1]) + (calculatedPoints[SizeToGenerate - 2, SizeToGenerate - 1] - calculatedPoints[SizeToGenerate - 1, SizeToGenerate - 1]);
-        calculatedPoints[1, 1].Weight = 1;
-        calculatedPoints[SizeToGenerate - 2, 1].Weight = 1;
-        calculatedPoints[1, SizeToGenerate - 2].Weight = 1;
-        calculatedPoints[SizeToGenerate - 2, SizeToGenerate - 2].Weight = 1;
+        if(calculatedPoints[1, 1] == null)
+        {
+            calculatedPoints[1, 1] = calculatedPoints[0, 0] + (calculatedPoints[1, 0] - calculatedPoints[0, 0]) + (calculatedPoints[0, 1] - calculatedPoints[0, 0]);
+            calculatedPoints[1, 1].Weight = 1;
+        }
+        if(calculatedPoints[SizeToGenerate - 2, 1] == null)
+        {
+            calculatedPoints[SizeToGenerate - 2, 1] = calculatedPoints[SizeToGenerate - 1, 0] + (calculatedPoints[SizeToGenerate - 2, 0] - calculatedPoints[SizeToGenerate - 1, 0]) + (calculatedPoints[SizeToGenerate - 1, 1] - calculatedPoints[SizeToGenerate - 1, 0]);
+            calculatedPoints[SizeToGenerate - 2, 1].Weight = 1;
+        }
+        if(calculatedPoints[1, SizeToGenerate - 2] == null)
+        {
+            calculatedPoints[1, SizeToGenerate - 2] = calculatedPoints[0, SizeToGenerate - 1] + (calculatedPoints[0, SizeToGenerate - 2] - calculatedPoints[0, SizeToGenerate - 1]) + (calculatedPoints[1, SizeToGenerate - 1] - calculatedPoints[0, SizeToGenerate - 1]);
+            calculatedPoints[1, SizeToGenerate - 2].Weight = 1;
+        }
+        if(calculatedPoints[SizeToGenerate - 2, SizeToGenerate - 2] == null)
+        {
+            calculatedPoints[SizeToGenerate - 2, SizeToGenerate - 2] = calculatedPoints[SizeToGenerate - 1, SizeToGenerate - 1] + (calculatedPoints[SizeToGenerate - 1, SizeToGenerate - 2] - calculatedPoints[SizeToGenerate - 1, SizeToGenerate - 1]) + (calculatedPoints[SizeToGenerate - 2, SizeToGenerate - 1] - calculatedPoints[SizeToGenerate - 1, SizeToGenerate - 1]);
+            calculatedPoints[SizeToGenerate - 2, SizeToGenerate - 2].Weight = 1;
+        }
+        
     }
 
     /// <summary>

@@ -93,12 +93,12 @@ public class UnityBezierChunk : MonoBehaviour
                             if((k == 0 || k == 3) && (l == 0 || l == 3))
                             {
                                 Gizmos.color = Color.cyan;
-                                Gizmos.DrawSphere(chunk.SurfacePatches[i, j].BezierPoints[k, l].Position, 0.5f);
+                                Gizmos.DrawSphere(chunk.SurfacePatches[i, j].BezierPoints[k, l].Position, 1f);
                             }
                             else
                             {
                                 Gizmos.color = Color.red;
-                                Gizmos.DrawSphere(chunk.SurfacePatches[i, j].BezierPoints[k, l].Position, 0.2f);
+                                Gizmos.DrawSphere(chunk.SurfacePatches[i, j].BezierPoints[k, l].Position, 0.8f);
                             }
                             
                         }
@@ -133,15 +133,16 @@ public class UnityBezierChunk : MonoBehaviour
                 }
             }
         }
-    
-    if(MetaMesh != null)
+        
+        if(MetaMesh != null)
         {
             for (int t = 0; t < Test; t++)
             {
                 Gizmos.color = Color.black;
-                Gizmos.DrawCube(MetaMesh.vertices[t], new Vector3(0.5f, 0.9f, 0.5f));
+                Gizmos.DrawLine(MetaMesh.vertices[t], MetaMesh.vertices[t] + MetaMesh.normals[t]*10);
             }
-        }        
+        }
+        
     }
 }
 

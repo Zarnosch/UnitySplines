@@ -28,6 +28,7 @@ public class BezierChunk : System.Object
     public float OverhangRatio { get; set; }
     public Mesh MetaMesh;
     private List<Vector3> metaVertices;
+    private List<Vector3> metaNormals;
     private List<Vector2> metaUVs;
     private int[] metaTriangles;
     public GameObject GOChunk;
@@ -112,16 +113,21 @@ public class BezierChunk : System.Object
         }
     }
 
+
     /// <summary>
     /// Calculates one big Metamesh out of all BezierPatches
     /// </summary>
     public void CalculateMetaMesh()
     {
-        //Debug.Log(Resolution);
+        //float eps = 0.5f;
         MetaMesh = new Mesh();
         metaVertices = new List<Vector3>();
-        metaTriangles = new int[Resolution * (Resolution * 6) * PatchAmount * PatchAmount];
+        metaNormals = new List<Vector3>();
+        metaTriangles = new int[(Resolution*PatchAmount)* (Resolution * PatchAmount) * 6];
         metaUVs = new List<Vector2>();
+        //Debug.Log(Resolution + " " + PatchAmount + " : " + Resolution * (Resolution * 6) * PatchAmount * PatchAmount);
+        /*
+        // assign per patch
         for (int i = 0; i < PatchAmount; i++)
         {
             for (int j = 0; j < PatchAmount; j++)
@@ -133,13 +139,80 @@ public class BezierChunk : System.Object
                         Vector2 temp = new Vector2((i + ((float)k / Resolution)), (j + ((float)l / Resolution)));
                         metaVertices.Add(GetPointAt(temp));
                         metaUVs.Add(new Vector2(i * Resolution + k, j * Resolution + l));
+                        // normal calculation needs the 1 ringneighbourhood vertices of the mesh
+                        Vector2 rightV2 = new Vector2((i + ((float)k / Resolution)), (j + ((float)(l + 1) / Resolution)));
+                        Vector2 leftV2 = new Vector2((i + ((float)k / Resolution)), (j + ((float)(l - 1) / Resolution)));
+                        Vector2 upV2 = new Vector2((i + ((float)(k - 1) / Resolution)), (j + ((float)l / Resolution)));
+                        Vector2 downV2 = new Vector2((i + ((float)(k + 1) / Resolution)), (j + ((float)l / Resolution)));
+                        //Debug.Log(temp + " | " + downV2 + " | " + rightV2);
+                        Vector3 rightV3 = GetPointAt(rightV2);
+                        Vector3 leftV3 = GetPointAt(leftV2);
+                        Vector3 upV3 = GetPointAt(upV2);
+                        Vector3 downV3 = GetPointAt(downV2);
+                        //Debug.Log(GetPointAt(temp) + " | " + GetPointAt(downV2) + " | " + GetPointAt(rightV2));
+                        Vector3 normal;
+                        if (k == Resolution || l == Resolution)
+                        {
+                            normal = GetNormal(temp, upV3, leftV3);
+                        }
+                        else
+                        {
+                            normal = GetNormal(temp, rightV3, downV3);
+                        }
+                        normal.Normalize();
+                        metaNormals.Add(normal);
                     }
                 }
+            }
+        }
+        */
+        // assign whole chunk
+        for (int x = 0; x <= PatchAmount * Resolution; x++)
+        {
+            for (int z = 0; z <= PatchAmount * Resolution; z++)
+            {
+                Vector2 temp = new Vector2(((x/ Resolution) + ((float)x / Resolution)%1), ((z/Resolution) + ((float)z / Resolution)%1));
+                //Debug.Log(temp);
+                metaVertices.Add(GetPointAt(temp));
+                metaUVs.Add(new Vector2(x, z));
+                /*
+                // normal calculation needs the 1 ringneighbourhood vertices of the mesh
+                Vector2 rightV2 = new Vector2(((x / Resolution) + ((float)x / Resolution) % 1), ((z / Resolution) + ((float)(z) / Resolution) % 1) + eps);
+                Vector2 leftV2 = new Vector2(((x / Resolution) + ((float)x / Resolution) % 1), ((z / Resolution) + ((float)(z) / Resolution) % 1) - eps);
+                Vector2 upV2 = new Vector2(((x / Resolution) + ((float)(x) / Resolution) % 1) - eps, ((z / Resolution) + ((float)z / Resolution) % 1));
+                Vector2 downV2 = new Vector2(((x / Resolution) + ((float)(x) / Resolution) % 1) + eps, ((z / Resolution) + ((float)z / Resolution) % 1));
+                //Debug.Log(temp + " | " + rightV2 + " | " + downV2);
+                Vector3 rightV3 = GetPointAt(rightV2);
+                Vector3 leftV3 = GetPointAt(leftV2);
+                Vector3 upV3 = GetPointAt(upV2);
+                Vector3 downV3 = GetPointAt(downV2);
+                //Debug.Log(GetPointAt(temp) + " | " + GetPointAt(downV2) + " | " + GetPointAt(rightV2));
+                Vector3 normal;
+                if (x == PatchAmount * Resolution || z == PatchAmount * Resolution)
+                {
+                    //Debug.Log(temp);
+                    //Debug.Log(temp + " | " + rightV2 + " | " + downV2);
+                    normal = GetNormal(temp, upV3, leftV3);
+                }
+                else
+                {
+                    normal = GetNormal(temp, rightV3, downV3);
+                    if (normal.y <= 0)
+                    {
+                        //Debug.Log(temp + " | " + rightV2 + " | " + downV2);
+                        //Debug.Log(normal + " | " + rightV3 + " | " + downV3);
+                    }
+                }
+
+                normal.Normalize();
+                metaNormals.Add(normal);
+                */
             }
         }
         MetaMesh.SetVertices(metaVertices);
         MetaMesh.SetUVs(0, metaUVs);
         // create the triangles
+        /*
         int countu = 0;
         int triCount = 0;
         int metaCounter = 0;
@@ -180,7 +253,38 @@ public class BezierChunk : System.Object
                 }
             }
         }
+        */
+        // create the triangles for whole chunk
+        int countu = 0;
+        int triCount = 0;
+        int metaCounter = 0;
+        // patches in x direction
+        for (int x = 0; x < PatchAmount * Resolution; x++)
+        {
+            // patches in z direction
+            for (int z = 0; z < PatchAmount * Resolution; z++)
+            {
+                if ((countu+1) % ((PatchAmount * Resolution)+1)  ==  0)
+                {
+                    //Debug.Log(countu);
+                    countu++;
+                }
+                int temp = countu;
+                metaTriangles[metaCounter] = countu;
+                metaTriangles[metaCounter + 1] = countu + 1;
+                metaTriangles[metaCounter + 2] = countu + Resolution*PatchAmount + 1;
+                metaTriangles[metaCounter + 3] = countu + 1;
+                metaTriangles[metaCounter + 4] = countu + Resolution*PatchAmount + 2;
+                metaTriangles[metaCounter + 5] = countu + Resolution*PatchAmount + 1;
+                triCount += 2;
+                countu++;
+                metaCounter += 6;
+                //Debug.Log(metaCounter);
+            }
+        }
         MetaMesh.SetTriangles(metaTriangles, 0);
+        //MetaMesh.SetNormals(metaNormals);
+        MetaMesh.RecalculateNormals();
     }
 
     public override string ToString()
@@ -232,12 +336,15 @@ public class BezierChunk : System.Object
         GOChunk.AddComponent<MeshFilter>();
         GOChunk.AddComponent<MeshRenderer>();
         GOChunk.AddComponent<UnityBezierChunk>();
+        GOChunk.AddComponent<MeshCollider>();
         MeshFilter tempFilter = GOChunk.GetComponent<MeshFilter>();
         tempFilter.mesh = MetaMesh;
         MeshRenderer tempRenderer = GOChunk.GetComponent<MeshRenderer>();
-        tempRenderer.material = new Material(Shader.Find("Standard"));
+        tempRenderer.material = new Material(Shader.Find("Custom/CellShading_Ground"));
         UnityBezierChunk UBChunk = GOChunk.GetComponent<UnityBezierChunk>();
         UBChunk.chunk = this;
+        MeshCollider collider = GOChunk.GetComponent<MeshCollider>();
+        collider.sharedMesh = MetaMesh;
         UBChunk.MetaMesh = MetaMesh;
         UBChunk.AverageMidPoint = AverageMidPoint;
         GOChunk.SetActive(true);
@@ -252,13 +359,16 @@ public class BezierChunk : System.Object
         MeshFilter tempFilter = GOChunk.GetComponent<MeshFilter>();
         tempFilter.mesh = MetaMesh;
         MeshRenderer tempRenderer = GOChunk.GetComponent<MeshRenderer>();
-        tempRenderer.material = new Material(Shader.Find("Standard"));
+        tempRenderer.material = new Material(Shader.Find("Custom/CellShading_Ground"));
         UnityBezierChunk UBChunk = GOChunk.GetComponent<UnityBezierChunk>();
         UBChunk.chunk = this;
+        MeshCollider collider = GOChunk.GetComponent<MeshCollider>();
+        collider.sharedMesh = MetaMesh;
         UBChunk.MetaMesh = MetaMesh;
         UBChunk.AverageMidPoint = AverageMidPoint;
         GOChunk.SetActive(true);
     }
+    
     public void RebuildChunkWithNeighbourUpdate()
     {
         AssignNoise();
@@ -269,12 +379,22 @@ public class BezierChunk : System.Object
         MeshFilter tempFilter = GOChunk.GetComponent<MeshFilter>();
         tempFilter.mesh = MetaMesh;
         MeshRenderer tempRenderer = GOChunk.GetComponent<MeshRenderer>();
-        tempRenderer.material = new Material(Shader.Find("Standard"));
+        tempRenderer.material = new Material(Shader.Find("Custom/CellShading_Ground"));
         UnityBezierChunk UBChunk = GOChunk.GetComponent<UnityBezierChunk>();
         UBChunk.chunk = this;
+        MeshCollider collider = GOChunk.GetComponent<MeshCollider>();
+        collider.sharedMesh = MetaMesh;
         UBChunk.MetaMesh = MetaMesh;
         UBChunk.AverageMidPoint = AverageMidPoint;
         GOChunk.SetActive(true);
     }
+
+    Vector3 GetNormal(Vector3 a, Vector3 b, Vector3 c)
+    {
+        Vector3 side1 = b - a;
+        Vector3 side2 = c - a;
+        return Vector3.Cross(side1, side2).normalized;
+    }
+
 }
 

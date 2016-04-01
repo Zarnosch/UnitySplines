@@ -36,6 +36,8 @@ public class ChunkGenerator : MonoBehaviour
     public Vector2i genPlace = new Vector2i(0, 0);
 
     public ChunkCache Cache;
+
+    public GameObject Player;
     // Use this for initialization
     void Start()
     {
@@ -58,6 +60,7 @@ public class ChunkGenerator : MonoBehaviour
             Cache.Patchamount = PatchAmount;
             patchAmount = PatchAmount;
         }
+        /*
         if (Input.GetKeyDown("w"))
         {
             Cache.Resolution = Resolution;
@@ -102,8 +105,8 @@ public class ChunkGenerator : MonoBehaviour
             genPlace = new Vector2i(genPlace.x - 1, genPlace.z);
             Cache.GenerateChunk(genPlace);
         }
-
-        
+        */
+        Cache.Update(Player.transform.position);
     }
 }
 
