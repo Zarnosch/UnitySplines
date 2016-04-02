@@ -64,6 +64,7 @@ public class BezierChunk : System.Object
         ChunkNoise.SizeToGenerate = PointAmount;
         AssignNeighboursToZNoise();
         ChunkNoise.calculatePoints();
+        
     }
 
     public void AssignNeighboursToZNoise()
@@ -119,7 +120,7 @@ public class BezierChunk : System.Object
     /// </summary>
     public void CalculateMetaMesh()
     {
-        //float eps = 0.5f;
+        float eps = 0.001f;
         MetaMesh = new Mesh();
         metaVertices = new List<Vector3>();
         metaNormals = new List<Vector3>();
@@ -175,12 +176,16 @@ public class BezierChunk : System.Object
                 //Debug.Log(temp);
                 metaVertices.Add(GetPointAt(temp));
                 metaUVs.Add(new Vector2(x, z));
-                /*
+                
                 // normal calculation needs the 1 ringneighbourhood vertices of the mesh
-                Vector2 rightV2 = new Vector2(((x / Resolution) + ((float)x / Resolution) % 1), ((z / Resolution) + ((float)(z) / Resolution) % 1) + eps);
-                Vector2 leftV2 = new Vector2(((x / Resolution) + ((float)x / Resolution) % 1), ((z / Resolution) + ((float)(z) / Resolution) % 1) - eps);
-                Vector2 upV2 = new Vector2(((x / Resolution) + ((float)(x) / Resolution) % 1) - eps, ((z / Resolution) + ((float)z / Resolution) % 1));
-                Vector2 downV2 = new Vector2(((x / Resolution) + ((float)(x) / Resolution) % 1) + eps, ((z / Resolution) + ((float)z / Resolution) % 1));
+                Vector2 rightV2 = new Vector2(((x / Resolution) + ((float)x / Resolution) % 1), ((z / Resolution) + ((float)(z) / Resolution) % 1));
+                rightV2 += new Vector2(0, eps);
+                Vector2 leftV2 = new Vector2(((x / Resolution) + ((float)x / Resolution) % 1), ((z / Resolution) + ((float)(z) / Resolution) % 1));
+                leftV2 += new Vector2(0, -eps);
+                Vector2 upV2 = new Vector2(((x / Resolution) + ((float)(x) / Resolution) % 1), ((z / Resolution) + ((float)z / Resolution) % 1));
+                upV2 += new Vector2(-eps, 0);
+                Vector2 downV2 = new Vector2(((x / Resolution) + ((float)(x) / Resolution) % 1), ((z / Resolution) + ((float)z / Resolution) % 1));
+                downV2 += new Vector2(eps, 0);
                 //Debug.Log(temp + " | " + rightV2 + " | " + downV2);
                 Vector3 rightV3 = GetPointAt(rightV2);
                 Vector3 leftV3 = GetPointAt(leftV2);
@@ -190,23 +195,17 @@ public class BezierChunk : System.Object
                 Vector3 normal;
                 if (x == PatchAmount * Resolution || z == PatchAmount * Resolution)
                 {
-                    //Debug.Log(temp);
-                    //Debug.Log(temp + " | " + rightV2 + " | " + downV2);
-                    normal = GetNormal(temp, upV3, leftV3);
+
+                    normal = GetNormal(GetPointAt(temp), leftV3, upV3);
                 }
                 else
                 {
-                    normal = GetNormal(temp, rightV3, downV3);
-                    if (normal.y <= 0)
-                    {
-                        //Debug.Log(temp + " | " + rightV2 + " | " + downV2);
-                        //Debug.Log(normal + " | " + rightV3 + " | " + downV3);
-                    }
+                    normal = GetNormal(GetPointAt(temp), rightV3, downV3);
                 }
 
                 normal.Normalize();
                 metaNormals.Add(normal);
-                */
+                
             }
         }
         MetaMesh.SetVertices(metaVertices);
@@ -283,8 +282,8 @@ public class BezierChunk : System.Object
             }
         }
         MetaMesh.SetTriangles(metaTriangles, 0);
-        //MetaMesh.SetNormals(metaNormals);
-        MetaMesh.RecalculateNormals();
+        MetaMesh.SetNormals(metaNormals);
+        //MetaMesh.RecalculateNormals();
     }
 
     public override string ToString()
@@ -391,6 +390,7 @@ public class BezierChunk : System.Object
 
     Vector3 GetNormal(Vector3 a, Vector3 b, Vector3 c)
     {
+        
         Vector3 side1 = b - a;
         Vector3 side2 = c - a;
         return Vector3.Cross(side1, side2).normalized;

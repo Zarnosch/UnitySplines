@@ -18,7 +18,7 @@ public class UnityBezierChunk : MonoBehaviour
     public Vector3 AverageMidPoint;
 
     [Range(2, 2000)]
-    public int Test = 1;
+    public int Test = 0;
 
     [Range(2, 20)]
     public int Resolution = 5;
@@ -35,8 +35,8 @@ public class UnityBezierChunk : MonoBehaviour
     private int prevSeed = 21;
 
     [Range(0, 90)]
-    public float Steepness = 41;
-    private float prevSteepness = 41;
+    public float Steepness = 10;
+    private float prevSteepness = 10;
 
     [Range(0, 90)]
     public int MaxOverhang = 41;
