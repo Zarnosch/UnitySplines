@@ -18,7 +18,7 @@ public class UnityBezierChunk : MonoBehaviour
     public Vector3 AverageMidPoint;
 
     [Range(2, 2000)]
-    public int Test = 0;
+    public int Normals = 0;
 
     [Range(2, 20)]
     public int Resolution = 5;
@@ -136,7 +136,7 @@ public class UnityBezierChunk : MonoBehaviour
         
         if(MetaMesh != null)
         {
-            for (int t = 0; t < Test; t++)
+            for (int t = 0; t < Normals; t++)
             {
                 Gizmos.color = Color.black;
                 Gizmos.DrawLine(MetaMesh.vertices[t], MetaMesh.vertices[t] + MetaMesh.normals[t]*10);

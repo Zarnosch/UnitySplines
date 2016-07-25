@@ -87,14 +87,15 @@ public class ZNoise : System.Object
     public ZNoise(EBiom biom, int seed, float steepness, float maxOverhang, float overhangRatio)
     {
         Seed = seed;
-        UnityEngine.Random.seed = Seed;
+        //UnityEngine.Random.seed = Seed;
         switch (biom)
         {
             case EBiom.Flat:
                 Range = 10;
                 MaxHeight = 100;
                 MinHeight = 50;
-                CommonHeight = UnityEngine.Random.value * Range;
+                //CommonHeight = UnityEngine.Random.value * Range;
+                CommonHeight = Range;
                 SizeToGenerate = 19;
                 PositiveSteepnes = steepness;
                 NegativeSteepnes = steepness;
