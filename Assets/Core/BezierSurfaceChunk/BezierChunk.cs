@@ -44,7 +44,7 @@ public class BezierChunk : System.Object
         Steepness = steepness;
         MaxOverhang = maxOverhang;
         OverhangRatio = overhangRatio;
-        ChunkNoise = new ZNoise(EBiom.Flat, Seed, Steepness, maxOverhang, overhangRatio);
+        ChunkNoise = new ZNoise(EBiom.Flat, Positionkey, Steepness, maxOverhang, overhangRatio);
         ChunkNoise.SizeToGenerate = PointAmount;
         ChunkNoise.calculatePoints();
         AverageMidPoint = ChunkNoise.AverageMidPoint;
@@ -59,24 +59,36 @@ public class BezierChunk : System.Object
 
     public void AssignNoise()
     {
-        ChunkNoise = new ZNoise(EBiom.Flat, Seed, Steepness, MaxOverhang, OverhangRatio);
+        ChunkNoise = new ZNoise(EBiom.Flat, Positionkey, Steepness, MaxOverhang, OverhangRatio);
         PointAmount = 1 + 3 * PatchAmount;
         ChunkNoise.SizeToGenerate = PointAmount;
         AssignNeighboursToZNoise();
         ChunkNoise.calculatePoints();
-        
     }
 
     public void AssignNeighboursToZNoise()
     {
+        //Debug.Log("NOISE: " + Positionkey);
         if(Left != null)
+        {
             ChunkNoise.LeftZNoise = Left.ChunkNoise;
-        if(Right != null)
+            //Debug.Log("NOISE: Left found");
+        }
+        if (Right != null)
+        {
             ChunkNoise.RightZNoise = Right.ChunkNoise;
-        if(Up != null)
+            //Debug.Log("NOISE: Right found");
+        }
+        if (Up != null)
+        {
             ChunkNoise.TopZNoise = Up.ChunkNoise;
-        if(Down != null)
+            //Debug.Log("NOISE: Top found");
+        }
+        if (Down != null)
+        {
             ChunkNoise.BotZNoise = Down.ChunkNoise;
+            //Debug.Log("NOISE: Bot found");
+        }
     }
 
     public void AssignPatches()
@@ -347,6 +359,7 @@ public class BezierChunk : System.Object
         UBChunk.MetaMesh = MetaMesh;
         UBChunk.AverageMidPoint = AverageMidPoint;
         GOChunk.SetActive(true);
+        GOChunk.transform.parent = GenRef.transform;
     }
 
     public void RebuildChunk()

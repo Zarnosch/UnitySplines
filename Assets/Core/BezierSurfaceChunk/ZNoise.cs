@@ -77,24 +77,28 @@ public class ZNoise : System.Object
     /// <summary>
     /// Seed for the unity random generator
     /// </summary>
-    public int Seed { get; set; }
+    public Vector2i Positionkey { get; set; }
     /// <summary>
     /// The result, null if not calculated
     /// </summary>
     public Point[,] calculatedPoints;
 
 
-    public ZNoise(EBiom biom, int seed, float steepness, float maxOverhang, float overhangRatio)
+    private ZRandom rnd;
+
+
+    public ZNoise(EBiom biom, Vector2i positionKey, float steepness, float maxOverhang, float overhangRatio)
     {
-        Seed = seed;
-        //UnityEngine.Random.seed = Seed;
+        Positionkey = positionKey;
+        int Seed = Positionkey.GetHashCode();
+        rnd = new ZRandom(Seed);
         switch (biom)
         {
             case EBiom.Flat:
                 Range = 10;
                 MaxHeight = 100;
                 MinHeight = 50;
-                //CommonHeight = UnityEngine.Random.value * Range;
+                CommonHeight = (float)rnd.NextDouble() * Range;
                 CommonHeight = Range;
                 SizeToGenerate = 19;
                 PositiveSteepnes = steepness;
@@ -122,7 +126,7 @@ public class ZNoise : System.Object
         -> top is the top row etc
         -> so the indices need to be assigned, depending from which side we start to generate the points
         */
-        //Debug.Log("Start Chunk Generation: ");
+        //Debug.Log("Start Chunk Generation: " + Positionkey);
         calculatedPoints = new Point[SizeToGenerate, SizeToGenerate];
         //Debug.Log(ToString());
         CalculateKnotvectors();
@@ -169,7 +173,7 @@ public class ZNoise : System.Object
     public void CalculateKnotvectors()
     {
         // first detect, if there are points needed to be assigned from other chunks
-        //Debug.Log("CalculateKnotvectors!");
+        //Debug.Log("CalculateKnotvectors!" + Positionkey);
         if (TopZNoise != null)
         {
             //Debug.Log("TopNoiseFound");
@@ -246,18 +250,19 @@ public class ZNoise : System.Object
                 //calculatedPoints[x, SizeToGenerate - 4].Weight = 1;
             }
         }
-        
         // now create the knotvectors, starting from top
         for (int x = 0; x < SizeToGenerate; x += 3)
         {
             for (int z = 0; z < SizeToGenerate; z += 3)
             {
+                ///Debug.Log(x + "Start" + z);
                 //check, if they aren´t already calculated through the neighbourhood chunks
                 if (calculatedPoints[x, z] == null)
                 {
                     //first entry
                     if (x == 0 && z == 0)
                     {
+                        //Debug.Log("First Entry");
                         if (RightZNoise != null || BotZNoise != null)
                         {
                             Vector3 botRight = calculatedPoints[SizeToGenerate-1, SizeToGenerate-1].Position;
@@ -268,28 +273,32 @@ public class ZNoise : System.Object
                         {
                             calculatedPoints[x, z] = new Point(new Vector3(0, CommonHeight, 0), 1);
                         }
-                        
+                        //Debug.Log(ToString());
                     }
 
                     //first row in z direction
                     else if (x == 0 && z >= 1)
                     {
+                       // Debug.Log("First Row in z direction " + x + " : " + z);
                         calculatedPoints[x, z] = new Point(calculatedPoints[x, z - 3].Position + rndKnotVector(EDirection.MinusZ), 1);
+                        //Debug.Log(ToString());
                     }
                     //first row in x direction
                     else if (x >= 1 && z == 0)
                     {
+                        //Debug.Log("First Row in x direction");
                         calculatedPoints[x, z] = new Point(calculatedPoints[x - 3, z].Position + rndKnotVector(EDirection.MinusX), 1);
                     }
                     //all other rows
                     else if (x >= 1 && z >= 1)
                     {
+                        //Debug.Log("All other rows");
                         Vector3 a = rndKnotVector(EDirection.MinusX);
                         Vector3 b = rndKnotVector(EDirection.MinusZ);
                         //Vector3 temp = new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
                         calculatedPoints[x, z] = new Point(calculatedPoints[x - 3, z - 3].Position + b + a, 1);
                     }
-                }                
+                }
             }
         }
     }
@@ -515,15 +524,14 @@ public class ZNoise : System.Object
         Vector2 temp = new Vector2();
         float maxSteep = Mathf.Sin(Mathf.Deg2Rad * PositiveSteepnes);
         float minSteep = Mathf.Sin(Mathf.Deg2Rad * NegativeSteepnes);
-        float tempSteepness = Random.Range(maxSteep, -minSteep);
+        float tempSteepness = rnd.Next(maxSteep, -minSteep);
         float maxOverhang = Mathf.Sin(Mathf.Deg2Rad * Overhang);
-        float tempOverhang = Random.Range((-maxOverhang)/10, 1);
+        float tempOverhang = rnd.Next((-maxOverhang)/10, 1);
         //Debug.Log("Max Overhang: " + maxOverhang + " TempOverhang: " + tempOverhang);
-        if(Random.value >= OverhangRatio)
+        if((float)rnd.NextDouble() >= OverhangRatio)
         {
             tempOverhang = 1;
         }
-
         switch (direction)
         {
             case EDirection.MinusX:
