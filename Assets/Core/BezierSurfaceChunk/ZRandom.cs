@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 
 class ZRandom
@@ -15,8 +16,10 @@ class ZRandom
     }
 
     public ZRandom (int seed)
-    {
-        if(seed == 0)
+    {      
+        seed = seed + System.DateTime.Now.Millisecond;
+        //Debug.Log(seed);
+        if (seed == 0)
         {
             m_w = 362436069;
             m_z = 521288629;

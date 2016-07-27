@@ -44,7 +44,7 @@ public class ChunkCache
     /// <summary>
     /// amount of chunks between the playerposition and the furthest chunk
     /// </summary>
-    public int ChunkGenerationDistance = 4;
+    public int ChunkGenerationDistance = 2;
 
     public int StartSeed { get; set; }
     public int Resolution { get; set; }

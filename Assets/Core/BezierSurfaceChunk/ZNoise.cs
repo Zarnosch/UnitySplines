@@ -185,12 +185,6 @@ public class ZNoise : System.Object
                 // c1 continuity
                 calculatedPoints[1, z] = calculatedPoints[0, z] + calculatedPoints[0, z] - TopZNoise.calculatedPoints[SizeToGenerate - 2, z];
                 calculatedPoints[1, z].Weight = 1;
-                // c2 continuity
-                //calculatedPoints[2, z] = calculatedPoints[0, z] + calculatedPoints[0, z] - TopZNoise.calculatedPoints[SizeToGenerate - 3, z];
-                //calculatedPoints[2, z].Weight = 1;
-                // c3 continuity
-                //calculatedPoints[3, z] = calculatedPoints[0, z] + calculatedPoints[0, z] - TopZNoise.calculatedPoints[SizeToGenerate - 4, z];
-                //calculatedPoints[3, z].Weight = 1;
             }
         }
         if (BotZNoise != null)
@@ -204,12 +198,6 @@ public class ZNoise : System.Object
                 // c1 continuity
                 calculatedPoints[SizeToGenerate - 2, z] = calculatedPoints[SizeToGenerate- 1, z] + calculatedPoints[SizeToGenerate-1, z] - BotZNoise.calculatedPoints[1, z];
                 calculatedPoints[SizeToGenerate - 2, z].Weight = 1;
-                // c2 continuity
-                //calculatedPoints[SizeToGenerate - 3, z] = calculatedPoints[SizeToGenerate - 1, z] + calculatedPoints[SizeToGenerate - 1, z] - BotZNoise.calculatedPoints[2, z];
-                //calculatedPoints[SizeToGenerate - 3, z].Weight = 1;
-                // c3 continuity
-                //calculatedPoints[SizeToGenerate - 4, z] = calculatedPoints[SizeToGenerate - 1, z] + calculatedPoints[SizeToGenerate - 1, z] - BotZNoise.calculatedPoints[3, z];
-                //calculatedPoints[SizeToGenerate - 4, z].Weight = 1;
             }
         }
         if (LeftZNoise != null)
@@ -223,12 +211,6 @@ public class ZNoise : System.Object
                 // c1 continuity
                 calculatedPoints[x, 1] = calculatedPoints[x, 0] + calculatedPoints[x, 0] - LeftZNoise.calculatedPoints[x, SizeToGenerate - 2];
                 calculatedPoints[x, 1].Weight = 1;
-                // c2 continuity
-                //calculatedPoints[x, 2] = calculatedPoints[x, 0] + calculatedPoints[x, 0] - LeftZNoise.calculatedPoints[x, SizeToGenerate - 3];
-                //calculatedPoints[x, 2].Weight = 1;
-                // c3 continuity
-                //calculatedPoints[x, 3] = calculatedPoints[x, 0] + calculatedPoints[x, 0] - LeftZNoise.calculatedPoints[x, SizeToGenerate - 4];
-                //calculatedPoints[x, 3].Weight = 1;
             }
         }
         if (RightZNoise != null)
@@ -242,12 +224,6 @@ public class ZNoise : System.Object
                 // c1 continuity
                 calculatedPoints[x, SizeToGenerate - 2] = calculatedPoints[x, SizeToGenerate-1] + calculatedPoints[x, SizeToGenerate-1] - RightZNoise.calculatedPoints[x, 1];
                 calculatedPoints[x, SizeToGenerate - 2].Weight = 1;
-                // c2 continuity
-                //calculatedPoints[x, SizeToGenerate - 3] = calculatedPoints[x, SizeToGenerate - 1] + calculatedPoints[x, SizeToGenerate - 1] - RightZNoise.calculatedPoints[x, 2];
-                //calculatedPoints[x, SizeToGenerate - 3].Weight = 1;
-                // c3 continuity
-                //calculatedPoints[x, SizeToGenerate - 4] = calculatedPoints[x, SizeToGenerate - 1] + calculatedPoints[x, SizeToGenerate - 1] - RightZNoise.calculatedPoints[x, 3];
-                //calculatedPoints[x, SizeToGenerate - 4].Weight = 1;
             }
         }
         // now create the knotvectors, starting from top
@@ -255,7 +231,6 @@ public class ZNoise : System.Object
         {
             for (int z = 0; z < SizeToGenerate; z += 3)
             {
-                ///Debug.Log(x + "Start" + z);
                 //check, if they aren´t already calculated through the neighbourhood chunks
                 if (calculatedPoints[x, z] == null)
                 {
@@ -273,26 +248,21 @@ public class ZNoise : System.Object
                         {
                             calculatedPoints[x, z] = new Point(new Vector3(0, CommonHeight, 0), 1);
                         }
-                        //Debug.Log(ToString());
                     }
 
                     //first row in z direction
                     else if (x == 0 && z >= 1)
                     {
-                       // Debug.Log("First Row in z direction " + x + " : " + z);
                         calculatedPoints[x, z] = new Point(calculatedPoints[x, z - 3].Position + rndKnotVector(EDirection.MinusZ), 1);
-                        //Debug.Log(ToString());
                     }
                     //first row in x direction
                     else if (x >= 1 && z == 0)
                     {
-                        //Debug.Log("First Row in x direction");
                         calculatedPoints[x, z] = new Point(calculatedPoints[x - 3, z].Position + rndKnotVector(EDirection.MinusX), 1);
                     }
                     //all other rows
                     else if (x >= 1 && z >= 1)
                     {
-                        //Debug.Log("All other rows");
                         Vector3 a = rndKnotVector(EDirection.MinusX);
                         Vector3 b = rndKnotVector(EDirection.MinusZ);
                         //Vector3 temp = new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
@@ -399,18 +369,12 @@ public class ZNoise : System.Object
                                 Vector3 t1 = calculatedPoints[x, z - 2].Position + (v1 * 2 / 3);
                                 Vector3 t2 = calculatedPoints[x, z + 4].Position + (v2 * 2 / 3);
                                 Vector3 t = t2 - t1;
-                                //if (calculatedPoints[x, z] == null)
-                                //{
-                                    calculatedPoints[x, z] = new Point();
-                                    calculatedPoints[x, z].Position = calculatedPoints[x, z + 1].Position - (t / 2);
-                                    set1 = true;
-                                //}
-                                //if (calculatedPoints[x, z + 2] == null)
-                                //{
-                                    calculatedPoints[x, z + 2] = new Point();
-                                    calculatedPoints[x, z + 2].Position = calculatedPoints[x, z + 1].Position + (t / 2);
-                                    set2 = true;
-                                //}
+                                calculatedPoints[x, z] = new Point();
+                                calculatedPoints[x, z].Position = calculatedPoints[x, z + 1].Position - (t / 2);
+                                set1 = true;
+                                calculatedPoints[x, z + 2] = new Point();
+                                calculatedPoints[x, z + 2].Position = calculatedPoints[x, z + 1].Position + (t / 2);
+                                set2 = true;
                                 if(set1 && set2)
                                 {
                                     set = true;
@@ -427,16 +391,10 @@ public class ZNoise : System.Object
                                 Vector3 t1 = calculatedPoints[x - 2, z].Position + (v1 * 2 / 3);
                                 Vector3 t2 = calculatedPoints[x + 4, z].Position + (v2 * 2 / 3);
                                 Vector3 t = t2 - t1;
-                                //if (calculatedPoints[x, z] == null)
-                                //{
-                                    calculatedPoints[x, z] = new Point();
-                                    calculatedPoints[x, z].Position = calculatedPoints[x + 1, z].Position - (t / 2);
-                                //}
-                                //if (calculatedPoints[x + 2, z] == null)
-                                //{
-                                    calculatedPoints[x + 2, z] = new Point();
-                                    calculatedPoints[x + 2, z].Position = calculatedPoints[x + 1, z].Position + (t / 2);
-                                //}
+                                calculatedPoints[x, z] = new Point();
+                                calculatedPoints[x, z].Position = calculatedPoints[x + 1, z].Position - (t / 2);
+                                calculatedPoints[x + 2, z] = new Point();
+                                calculatedPoints[x + 2, z].Position = calculatedPoints[x + 1, z].Position + (t / 2);
                             }
                         }
                         if (!set)
@@ -468,16 +426,10 @@ public class ZNoise : System.Object
                             Vector3 t1 = calculatedPoints[x, z - 2].Position + (v1 * 2 / 3);
                             Vector3 t2 = calculatedPoints[x, z + 4].Position + (v2 * 2 / 3);
                             Vector3 t = t2 - t1;
-                            //if (calculatedPoints[x, z] == null)
-                            //{
                             calculatedPoints[x, z] = new Point();
                             calculatedPoints[x, z].Position = calculatedPoints[x, z + 1].Position - (t / 2);
-                            //}
-                            //if (calculatedPoints[x, z + 2] == null)
-                            //{
                             calculatedPoints[x, z + 2] = new Point();
                             calculatedPoints[x, z + 2].Position = calculatedPoints[x, z + 1].Position + (t / 2);
-                            //}
                             set = true;
                         }
                     }
@@ -491,16 +443,10 @@ public class ZNoise : System.Object
                             Vector3 t1 = calculatedPoints[x - 2, z].Position + (v1 * 2 / 3);
                             Vector3 t2 = calculatedPoints[x + 4, z].Position + (v2 * 2 / 3);
                             Vector3 t = t2 - t1;
-                            //if (calculatedPoints[x, z] == null)
-                            //{
-                                calculatedPoints[x, z] = new Point();
-                                calculatedPoints[x, z].Position = calculatedPoints[x + 1, z].Position - (t / 2);
-                            //}
-                            //if (calculatedPoints[x + 2, z] == null)
-                            //{
+                            calculatedPoints[x, z] = new Point();
+                            calculatedPoints[x, z].Position = calculatedPoints[x + 1, z].Position - (t / 2);
                             calculatedPoints[x + 2, z] = new Point();
                             calculatedPoints[x + 2, z].Position = calculatedPoints[x + 1, z].Position + (t / 2);
-                            //} 
                             set = true;
                         }
                     }
@@ -508,7 +454,6 @@ public class ZNoise : System.Object
                     {
                         //Debug.Log("Couldn´t calculate c2 control points second try at X: " + x + " Z: " + z);
                     }
-                    //calculatedPoints[x, z].Weight = 1;
                 }
             }
         }
