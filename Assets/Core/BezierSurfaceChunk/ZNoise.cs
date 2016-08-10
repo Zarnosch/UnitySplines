@@ -98,7 +98,7 @@ public class ZNoise : System.Object
                 Range = 10;
                 MaxHeight = 100;
                 MinHeight = 50;
-                CommonHeight = (float)rnd.NextDouble() * Range;
+                //CommonHeight = (float)rnd.NextDouble() * Range;
                 CommonHeight = Range;
                 SizeToGenerate = 19;
                 PositiveSteepnes = steepness;

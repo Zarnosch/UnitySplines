@@ -40,11 +40,14 @@ public class ChunkCache
     /// the active chunk, the player is standing on
     /// </summary>
     public Vector2i ActiveChunk;
+    /// <summary>
+    /// last chunk the player was on
+    /// </summary>
     private Vector2i lastActiveChunk;
     /// <summary>
     /// amount of chunks between the playerposition and the furthest chunk
     /// </summary>
-    public int ChunkGenerationDistance = 2;
+    public int ChunkGenerationDistance = 1;
 
     public int StartSeed { get; set; }
     public int Resolution { get; set; }
@@ -130,7 +133,7 @@ public class ChunkCache
                 }
             }
         }
-        // generation
+        // generation in threads
         SpawnThreads();
     }
 
@@ -362,7 +365,7 @@ public class ChunkCache
             // add the chunk to the map
             GeneratedChunksMap.Add(_genKey, toGenerate);
             // update the noise of the chunkneighbours
-            //UpdateNeighbours(_genKey);
+            UpdateNeighbours(_genKey);
             // delete the created chunk out of the list of chunks which are in creation
             ChunkMeshToGeneration.RemoveAt(i);
             ChunksInGeneration.Remove(_genKey);
@@ -376,8 +379,9 @@ public class ChunkCache
     }
 
     #region update ChunkNeighbourNoise and rebuild the NeighbourChunks
-    public void UpdateNeighbours(Vector2i midVec)
+    public void UpdateNeighboursAndRebuild(Vector2i midVec)
     {
+        Debug.Log("Rebuild, Don´t use until you want to rebuild a shit load of chunks");
         BezierChunk temp;
         GeneratedChunksMap.TryGetValue(midVec, out temp);
         //Debug.Log(temp.ToString());
@@ -423,6 +427,46 @@ public class ChunkCache
         }
         temp.AssignNeighboursToZNoise();
     }
+    /// <summary>
+    /// Updates all neighbour chunks and assignes the noise to the chunk itself and its neighbours
+    /// </summary>
+    /// <param name="midVec"></param>
+    public void UpdateNeighbours(Vector2i midVec)
+    {
+        //Debug.Log("Update Neighbours of " + midVec.ToString());
+        BezierChunk temp;
+        GeneratedChunksMap.TryGetValue(midVec, out temp);
+        //Debug.Log(temp.ToString());
+        if (GetNeighbourChunkTop(midVec) != null)
+        {
+            GetNeighbourChunkTop(midVec).Down = temp;
+            GetNeighbourChunkTop(midVec).AssignNeighboursToZNoise();
+            temp.Up = GetNeighbourChunkTop(midVec);
+        }
+        if (GetNeighbourChunkBot(midVec) != null)
+        {
+            GetNeighbourChunkBot(midVec).Up = temp;
+            GetNeighbourChunkBot(midVec).AssignNeighboursToZNoise();
+            temp.Down = GetNeighbourChunkBot(midVec);
+        }
+        if (GetNeighbourChunkLeft(midVec) != null)
+        {
+            GetNeighbourChunkLeft(midVec).Right = temp;
+            GetNeighbourChunkLeft(midVec).AssignNeighboursToZNoise();
+            temp.Left = GetNeighbourChunkLeft(midVec);
+        }
+        if (GetNeighbourChunkRight(midVec) != null)
+        {
+            GetNeighbourChunkRight(midVec).Left = temp;
+            GetNeighbourChunkRight(midVec).AssignNeighboursToZNoise();
+            temp.Right = GetNeighbourChunkRight(midVec);
+        }
+
+        temp.AssignNeighboursToZNoise();
+
+    }
+
+
     #endregion
     #region getting Neighbour Keys
     public Vector2i GetNeighbourKeyTop(Vector2i _midKey)

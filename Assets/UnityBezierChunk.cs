@@ -46,6 +46,9 @@ public class UnityBezierChunk : MonoBehaviour
     public float OverhangRatio = 0;
     private float prevOverhangRatio = 0;
 
+    public bool ToggleStatus = false;
+    private bool toggleStatus = false;
+
     // Use this for initialization
     void Start()
     {
@@ -65,13 +68,51 @@ public class UnityBezierChunk : MonoBehaviour
             chunk.OverhangRatio = OverhangRatio;
             // rebuild chunk with the new settings
             chunk.RebuildChunkWithNeighbourUpdate();
-            AverageMidPoint = chunk.AverageMidPoint;     
+            AverageMidPoint = chunk.AverageMidPoint;
             // save changes
             prevSeed = Seed;
             prevSteepness = Steepness;
             prevResolution = Resolution;
             prevMaxOverhang = MaxOverhang;
             prevOverhangRatio = OverhangRatio;
+        }
+        //get special debug output
+        if (toggleStatus != ToggleStatus)
+        {
+            if(chunk.ChunkNoise.TopZNoise == null)
+            {
+                Debug.Log("Has no top noise");
+            }
+            if (chunk.ChunkNoise.RightZNoise == null)
+            {
+                Debug.Log("Has no right noise");
+            }
+            if (chunk.ChunkNoise.BotZNoise == null)
+            {
+                Debug.Log("Has no bot noise");
+            }
+            if (chunk.ChunkNoise.LeftZNoise == null)
+            {
+                Debug.Log("Has no left noise");
+            }
+
+            if (chunk.Up == null)
+            {
+                Debug.Log("Has no top chunk");
+            }
+            if (chunk.Right == null)
+            {
+                Debug.Log("Has no right chunk");
+            }
+            if (chunk.Down == null)
+            {
+                Debug.Log("Has no bot chunk");
+            }
+            if (chunk.Left == null)
+            {
+                Debug.Log("Has no left chunk");
+            }
+            toggleStatus = ToggleStatus;
         }
     }
 

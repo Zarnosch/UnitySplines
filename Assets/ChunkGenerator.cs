@@ -14,8 +14,8 @@ public class ChunkGenerator : MonoBehaviour
     private int prevResolution = 5;
 
     [Range(1, 42)]
-    public int PatchAmount = 5;
-    private int patchAmount = 5;
+    public int PatchAmount = 10;
+    private int patchAmount = 10;
 
     [Range(0, 1337)]
     public int Seed = 21;
@@ -60,52 +60,6 @@ public class ChunkGenerator : MonoBehaviour
             Cache.Patchamount = PatchAmount;
             patchAmount = PatchAmount;
         }
-        /*
-        if (Input.GetKeyDown("w"))
-        {
-            Cache.Resolution = Resolution;
-            Cache.StartSeed = Seed;
-            Cache.Steepness = Steepness;
-            Cache.MaxOverhang = MaxOverhang;
-            Cache.OverhangRatio = OverhangRatio;
-            //Debug.Log("W Pressed");
-            genPlace = new Vector2i(genPlace.x + 1, genPlace.z);
-            Cache.GenerateChunk(genPlace);
-        }
-        if (Input.GetKeyDown("d"))
-        {
-            Cache.Resolution = Resolution;
-            Cache.StartSeed = Seed;
-            Cache.Steepness = Steepness;
-            Cache.MaxOverhang = MaxOverhang;
-            Cache.OverhangRatio = OverhangRatio;
-            //Debug.Log("D Pressed");
-            genPlace = new Vector2i(genPlace.x, genPlace.z - 1);
-            Cache.GenerateChunk(genPlace);
-        }
-        if (Input.GetKeyDown("a"))
-        {
-            Cache.Resolution = Resolution;
-            Cache.StartSeed = Seed;
-            Cache.Steepness = Steepness;
-            Cache.MaxOverhang = MaxOverhang;
-            Cache.OverhangRatio = OverhangRatio;
-            //Debug.Log("A Pressed");
-            genPlace = new Vector2i(genPlace.x, genPlace.z + 1);
-            Cache.GenerateChunk(genPlace);
-        }
-        if (Input.GetKeyDown("s"))
-        {
-            Cache.Resolution = Resolution;
-            Cache.StartSeed = Seed;
-            Cache.Steepness = Steepness;
-            Cache.MaxOverhang = MaxOverhang;
-            Cache.OverhangRatio = OverhangRatio;
-            //Debug.Log("S Pressed");
-            genPlace = new Vector2i(genPlace.x - 1, genPlace.z);
-            Cache.GenerateChunk(genPlace);
-        }
-        */
         Cache.Update(Player.transform.position);
     }
 }
