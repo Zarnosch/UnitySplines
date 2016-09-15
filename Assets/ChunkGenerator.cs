@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using LibNoise.Generator;
 using System.Collections;
+using LibNoise;
 
 
 public class ChunkGenerator : MonoBehaviour
@@ -33,7 +35,18 @@ public class ChunkGenerator : MonoBehaviour
     public float OverhangRatio = 0;
     private float prevOverhangRatio = 0;
 
+    [Range(1, 5)]
+    public int Range = 3;
+    private int range = 3;
+
+    public double Frequency = 5;
+    public double Lacunarity = 1;
+    public double Persistence = 1;
+    public int Octaves = 1;
+
     public Vector2i genPlace = new Vector2i(0, 0);
+
+    public Perlin PerlinNoise;
 
     public ChunkCache Cache;
 
@@ -48,7 +61,7 @@ public class ChunkGenerator : MonoBehaviour
         Cache.MaxOverhang = MaxOverhang;
         Cache.OverhangRatio = OverhangRatio;
         Cache.Patchamount = PatchAmount;
-        
+        PerlinNoise = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.Medium);
         
     }
 

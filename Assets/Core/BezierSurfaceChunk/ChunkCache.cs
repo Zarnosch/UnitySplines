@@ -54,6 +54,7 @@ public class ChunkCache
     public float Steepness { get; set; }
     public float MaxOverhang { get; set; }
     public float OverhangRatio { get; set; }
+    public int Stepsize { get; set; }
 
     BezierChunk refActiveChunk, top, left, bot, right, topLeft, topRight, botLeft, botRight;
     float diffLast, diffTop, diffLeft, diffBot, diffRight, diffTopLeft, diffTopRight, diffBotLeft, diffBotRight;

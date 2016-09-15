@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using System.Collections;
+using LibNoise.Generator;
 
 
 public class ZNoise : System.Object
@@ -10,7 +11,7 @@ public class ZNoise : System.Object
     /// <summary>
     /// Distance between different Bezier Control Points
     /// </summary>
-    public float Range { get; set; }
+    public int Range { get; set; }
     /// <summary>
     /// Maximum heigt, where bezierpoints can be places
     /// </summary>
@@ -82,33 +83,18 @@ public class ZNoise : System.Object
     /// The result, null if not calculated
     /// </summary>
     public Point[,] calculatedPoints;
+    /// <summary>
+    /// copy of the given meta perlinNoise with all its variables
+    /// </summary>
+    private Perlin PerlinNoise;
 
-
-    private ZRandom rnd;
-
-
-    public ZNoise(EBiom biom, Vector2i positionKey, float steepness, float maxOverhang, float overhangRatio)
+    public ZNoise(Vector2i positionKey, Perlin perlinNoise, int range, int sizeToGenerate)
     {
         Positionkey = positionKey;
+        SizeToGenerate = sizeToGenerate;
         int Seed = Positionkey.GetHashCode();
-        rnd = new ZRandom(Seed);
-        switch (biom)
-        {
-            case EBiom.Flat:
-                Range = 10;
-                MaxHeight = 100;
-                MinHeight = 50;
-                //CommonHeight = (float)rnd.NextDouble() * Range;
-                CommonHeight = Range;
-                SizeToGenerate = 19;
-                PositiveSteepnes = steepness;
-                NegativeSteepnes = steepness;
-                Overhang = maxOverhang;
-                OverhangRatio = overhangRatio;
-                Ocatves = 4;
-                Continuity = 1;
-                break;
-        }
+        PerlinNoise = perlinNoise;
+        Range = range;
     }
 
     public Point[,] calculatePoints()
@@ -173,6 +159,7 @@ public class ZNoise : System.Object
     public void CalculateKnotvectors()
     {
         // first detect, if there are points needed to be assigned from other chunks
+        /*
         //Debug.Log("CalculateKnotvectors!" + Positionkey);
         if (TopZNoise != null)
         {
@@ -226,12 +213,14 @@ public class ZNoise : System.Object
                 calculatedPoints[x, SizeToGenerate - 2].Weight = 1;
             }
         }
+        */
         // now create the knotvectors, starting from top
         for (int x = 0; x < SizeToGenerate; x += 3)
         {
             for (int z = 0; z < SizeToGenerate; z += 3)
             {
                 //check, if they aren´t already calculated through the neighbourhood chunks
+                /*
                 if (calculatedPoints[x, z] == null)
                 {
                     //first entry
@@ -269,6 +258,11 @@ public class ZNoise : System.Object
                         calculatedPoints[x, z] = new Point(calculatedPoints[x - 3, z - 3].Position + b + a, 1);
                     }
                 }
+                */
+                // TODO: falsche keys im array eingeordnet, zudem liegen die ränder nicht aufeinander und es gibt kein höhenfeld
+                int xKey = ((Positionkey.x * SizeToGenerate) + (x)) * Range;
+                int zKey = ((Positionkey.z * SizeToGenerate) + (z)) * Range;
+                calculatedPoints[x, z] = new Point(new Vector3(xKey, (float)PerlinNoise.GetValue((double)xKey, 1, (double)zKey), zKey), 1);
             }
         }
     }
@@ -465,7 +459,10 @@ public class ZNoise : System.Object
     /// <returns>returns a Point, which is in the direction</returns>
     private Vector3 rndKnotVector(EDirection direction)
     {
+        Debug.Log("Don´t use this method!");
+        
         Vector3 value = new Vector3();
+        /*
         Vector2 temp = new Vector2();
         float maxSteep = Mathf.Sin(Mathf.Deg2Rad * PositiveSteepnes);
         float minSteep = Mathf.Sin(Mathf.Deg2Rad * NegativeSteepnes);
@@ -504,6 +501,7 @@ public class ZNoise : System.Object
                 value.y = temp.y;
                 break;
         }
+        */
         return value;
     }
 

@@ -1,4 +1,7 @@
-﻿Shader "Custom/CellShading"
+﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
+// Upgrade NOTE: replaced '_World2Object' with 'unity_WorldToObject'
+
+Shader "Custom/CellShading"
 {
 	Properties
 	{
@@ -52,8 +55,8 @@
 			{
 				v2f o;
 				o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
-				o.normal = mul(float4(v.normal, 0.0), _World2Object).xyz;
-				o.posWorld = mul(_Object2World, v.vertex);
+				o.normal = mul(float4(v.normal, 0.0), unity_WorldToObject).xyz;
+				o.posWorld = mul(unity_ObjectToWorld, v.vertex);
 				return o;
 			}
 			

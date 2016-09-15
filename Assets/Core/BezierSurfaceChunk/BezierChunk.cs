@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using System.Collections;
+using LibNoise.Generator;
 
 public class BezierChunk : System.Object
 {
@@ -39,15 +40,14 @@ public class BezierChunk : System.Object
     }
 
     /// <summary>
-    /// Initializes the noise and also asignes the nois from neighbourjood chunks if available
+    /// Initializes the noise and also asignes the noise from neighbourjood chunks if available
     /// </summary>
     public void AssignNoise()
     {
         //Debug.Log("AssignNoise of" + Positionkey.ToString());
         //Debug.Log(PatchAmount);
-        ChunkNoise = new ZNoise(EBiom.Flat, Positionkey, Steepness, MaxOverhang, OverhangRatio);
         PointAmount = 1 + 3 * PatchAmount;
-        ChunkNoise.SizeToGenerate = PointAmount;
+        ChunkNoise = new ZNoise(Positionkey, GenRef.PerlinNoise, GenRef.Range, PointAmount);
         AssignNeighboursToZNoise();
         ChunkNoise.calculatePoints();
     }
