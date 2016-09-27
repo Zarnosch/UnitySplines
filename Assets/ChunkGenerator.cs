@@ -35,9 +35,9 @@ public class ChunkGenerator : MonoBehaviour
     public float OverhangRatio = 0;
     private float prevOverhangRatio = 0;
 
-    [Range(1, 5)]
-    public int Range = 3;
-    private int range = 3;
+    [Range(1, 27)]
+    public int Range = 9;
+    private int range = 9;
 
     public double Frequency = 5;
     public double Lacunarity = 1;
@@ -46,12 +46,12 @@ public class ChunkGenerator : MonoBehaviour
 
     public Vector2i genPlace = new Vector2i(0, 0);
 
-    public Perlin PerlinNoise;
+    public NoiseProvider Noise {get; set; }
 
     public ChunkCache Cache;
 
     public GameObject Player;
-    // Use this for initialization
+    // Use this for 
     void Start()
     {
         Cache = new ChunkCache(this);
@@ -61,8 +61,12 @@ public class ChunkGenerator : MonoBehaviour
         Cache.MaxOverhang = MaxOverhang;
         Cache.OverhangRatio = OverhangRatio;
         Cache.Patchamount = PatchAmount;
-        PerlinNoise = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.Medium);
-        
+        Noise = new NoiseProvider();
+        //PerlinNoise = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.Medium);
+        //PerlinNoise = new Perlin();
+        //float a = (float)(PerlinNoise.GetValue(1, 0, 1) / 2f) + 0.5f;
+        //Debug.Log("outside");
+        //Debug.Log(a);
     }
 
     // Update is called once per frame

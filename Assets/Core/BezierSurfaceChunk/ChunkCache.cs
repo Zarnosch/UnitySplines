@@ -29,7 +29,7 @@ public class ChunkCache
     /// </summary>
     public List<BezierChunk> ChunkMeshToGeneration = new List<BezierChunk>();
     /// <summary>
-    /// just a reference to the Chunkgenerator for acessing in O(1), a ref doen´t cost anything, getComponent does
+    /// just a reference to the Chunkgenerator for acessing in O(1), a ref doesn´t cost anything, getComponent does
     /// </summary>
     public ChunkGenerator GenRef;
     /// <summary>

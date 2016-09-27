@@ -8,7 +8,6 @@ namespace LibNoise.Generator
     public class Perlin : ModuleBase
     {
         #region Fields
-
         private double _frequency = 1.0;
         private double _lacunarity = 2.0;
         private QualityMode _quality = QualityMode.Medium;
@@ -26,6 +25,7 @@ namespace LibNoise.Generator
         public Perlin()
             : base(0)
         {
+            Debug.Log("modules:" + SourceModuleCount);
         }
 
         /// <summary>
@@ -122,6 +122,7 @@ namespace LibNoise.Generator
         {
             var value = 0.0;
             var cp = 1.0;
+
             x *= _frequency;
             y *= _frequency;
             z *= _frequency;
@@ -138,6 +139,7 @@ namespace LibNoise.Generator
                 z *= _lacunarity;
                 cp *= _persistence;
             }
+            Debug.Log("X: " + x + " Z: " + z + " val: " + value);
             return value;
         }
 

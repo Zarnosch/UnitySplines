@@ -86,14 +86,16 @@ public class ZNoise : System.Object
     /// <summary>
     /// copy of the given meta perlinNoise with all its variables
     /// </summary>
-    private Perlin PerlinNoise;
+    private NoiseProvider Noise;
 
-    public ZNoise(Vector2i positionKey, Perlin perlinNoise, int range, int sizeToGenerate)
+    public ZNoise(Vector2i positionKey, NoiseProvider noise, int range, int sizeToGenerate)
     {
+        //Debug.Log("Omg!");
         Positionkey = positionKey;
         SizeToGenerate = sizeToGenerate;
         int Seed = Positionkey.GetHashCode();
-        PerlinNoise = perlinNoise;
+        Noise = noise;
+        //Debug.Log(PerlinNoise.Seed);
         Range = range;
     }
 
@@ -258,11 +260,12 @@ public class ZNoise : System.Object
                         calculatedPoints[x, z] = new Point(calculatedPoints[x - 3, z - 3].Position + b + a, 1);
                     }
                 }
-                */
-                // TODO: falsche keys im array eingeordnet, zudem liegen die ränder nicht aufeinander und es gibt kein höhenfeld
-                int xKey = ((Positionkey.x * SizeToGenerate) + (x)) * Range;
-                int zKey = ((Positionkey.z * SizeToGenerate) + (z)) * Range;
-                calculatedPoints[x, z] = new Point(new Vector3(xKey, (float)PerlinNoise.GetValue((double)xKey, 1, (double)zKey), zKey), 1);
+                */ // es gibt kein höhenfeld
+                int xKey = ((Positionkey.x * (SizeToGenerate-1)) - (x)) * Range;
+                int zKey = ((Positionkey.z * (SizeToGenerate-1)) - (z)) * Range;
+                float yVal = Noise.GetValue(xKey, zKey);
+                //Debug.Log(xKey + " - " +  yVal + " - " + zKey);
+                calculatedPoints[x, z] = new Point(new Vector3(xKey, yVal, zKey), 1);
             }
         }
     }

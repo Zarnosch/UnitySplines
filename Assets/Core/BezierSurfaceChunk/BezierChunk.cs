@@ -47,7 +47,7 @@ public class BezierChunk : System.Object
         //Debug.Log("AssignNoise of" + Positionkey.ToString());
         //Debug.Log(PatchAmount);
         PointAmount = 1 + 3 * PatchAmount;
-        ChunkNoise = new ZNoise(Positionkey, GenRef.PerlinNoise, GenRef.Range, PointAmount);
+        ChunkNoise = new ZNoise(Positionkey, GenRef.Noise, GenRef.Range, PointAmount);
         AssignNeighboursToZNoise();
         ChunkNoise.calculatePoints();
     }
