@@ -11,6 +11,6 @@ public class NoiseProvider : INoiseProvider
 
     public float GetValue(float x, float z)
     {
-        return (float)(PerlinNoiseGenerator.GetValue(x, 0, z) / 2f) + 0.5f;
+        return (float)(PerlinNoiseGenerator.GetValue(x/50, 0d, z/50) / 2f) + 0.5f;
     }
 }
